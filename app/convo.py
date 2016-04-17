@@ -102,7 +102,6 @@ class ConvoState(object):
         return self.fact_context.fact
 
     def step(self, user_input=None):
-        # SHIT SHIT TODO: when all facts established - try moving to the next Stage 
         if not self.fact_context.fact and not self.set_fact_context():
             self.is_over = True
             return ConvoStepResponse(continues=False)
@@ -123,6 +122,11 @@ class ConvoState(object):
             self.is_over = True
 
         return response
+
+class ConvoError(Exception): """ """
+class ConvoErrorInvalidId(ConvoError): """ conversation id not found """
+class ConvoErrorIsOver(ConvoError): """ conversation is over """
+
 
 class StagedConvo(object):
     """ staged conversation """
@@ -147,16 +151,23 @@ class ConversationIndex(object):
         stage_rules - list(StageRules) of rule sets for each stage 
         """
         self.stage_rules = stage_rules
-        self.convo_facts = dict()
+        self.convos = dict()
 
     def terminate_convo(self, convo_id):
-        self.convo_facts.pop(convo_id)
+        self.convos.pop(convo_id)
 
     def create_convo(self, convo_id):
         """ """
-        self.convo_facts[convo_id] = StagedConvo(self.terminate_convo)
+        self.convos[convo_id] = StagedConvo(self.terminate_convo)
         return self.convo_facts[convo_id]
 
-    def get_convo_facts(self, convo_id):
-        # retrieves current fact state for a given convo_id
-        return self.convo_facts.get(convo_id)
+    def step(self, convo_id, user_input=None):
+        convo = self.convos.get(convo_id)
+        if not convo:
+            raise ConvoErrorInvalidId()
+
+        state = convo.get_next_stage()
+        if not state:
+            raise ConvoErrorIsOver()
+
+        return state.step(user_input=user_input)

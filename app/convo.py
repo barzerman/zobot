@@ -1,6 +1,8 @@
-from config import RulesSettings
 import logging
+import containers
+from config import RulesSettings
 import barzer
+
 
 class ParsedInput(object):
     def __init__(self, barzer_output):
@@ -8,11 +10,24 @@ class ParsedInput(object):
 
 
 class Fact(object):
-    """ single conversation fact """ 
+    """ single conversation fact """
+    def __init__(self):
+        self.is_established = False
+
+    def get_next_bot_phrase(self):
+        """ given current state of the fact return
+        the next question
+        """
+        logging.error('Unimplemented')
+        return ""
 
 class ConvoFacts(object):
     """ current facts state for a single convo """
-    def get_unknown_facts(self, parsed_input):
+    def __init__(self, rules):
+        """ creates an empty ConvoFacts impression based on the rules """ 
+        #TODO: parse rules
+
+    def get_unknown_fact(self, entities_input):
         """ returns next facts that need to be established """
         logging.error('Unimplemented')
         return Fact()
@@ -30,59 +45,118 @@ class ConvoRules(object):
         for fn in RulesSettings.RULES_FILES:
             self.parse_rules_file(fn)
 
-class ConversationIndex(object):
-    """ Global object shared by all convos
-    convo environment - has access to all knows current conversations index by
-    `convo_id`
-    """
-    def __init__(self):
-        """ """
-        self.convo_facts = dict()
+class CurrentFactContext(object):
+    """ context for the fact currently being established """
+    def __init__(self, convo_state, fact=None):
+        self.convo_state = convo_state
+        self.fact = fact
+        self.entities = list()  # entities so far discovered during this establishing
 
-    def terminate_convo(self, convo_id):
-        self.convo_facts.pop(convo_id)
+    def established(self):
+        return self.fact.is_established
 
-    def create_convo_facts(self, convo_id):
-        """ """
-        self.convo_facts[convo_id] = ConvoFacts()
-        return self.convo_facts[convo_id]
+    def interpret_entities(self, entities_input):
+        # TODO: implement
+        pass
 
-    def get_convo_facts(self, convo_id):
-        # retrieves current fact state for a given convo_id
-        return self.convo_facts.get(convo_id)
+    def get_next_bot_phrase(self):
+        self.fact.get_next_bot_phrase()
+
+    def set_fact(self, fact):
+        self.fact, self.entities = fact, []
+
+class ConvoStepResponse(object):
+    """ ConvoState.step() returns these objects """
+    def __init__(self, text=None, established_fact=None, continues=True):
+        self.text = text
+        self.continues = state
+        self.established_fact = established_fact
 
 class ConvoState(object):
-    def __init__(self, convo_id, global_index, rules):
+    def __init__(self, facts):
         """
-        global_index - stores states for all conversations
+        convo_id (int) conversation id
+        facts (ConvoFacts) - conversation facts for the given stage of the conversation
         """
-        self.global_index = global_index
-        self.rules = rules
-        self.facts = self.global_index.get_convo_facts(convo_id)
-        if not self.fact_index:
-            self.fact_index = self.global_index.create_convo_facts(convo_id)
-
+        self.facts = facts
         self.terminal_facts = []
+        self.fact_context = CurrentFactContext()  # fact currently being established
+        self.is_over = False
 
     def parse_input(self, user_input):
         """ """
         return ParsedInput(barzer.parse(user_input))
 
-    def interpret_input(self, parsed_input, facts):
+    def interpret_input(self, entities_input, facts):
         new_terminals = []
         for fact in facts:
-            fact.apply(parsed_input)
+            fact.apply(entities_input)
             if fact.is_terminal():
                 new_terminals.append(fact)
 
-    def step(self, user_input=None):
-        parsed_input = self.parse_input(user_input)
-        facts = self.facts.get_unknown_facts(parsed_input)
-        new_terminals = self.interpret_input(parsed_input, facts)
+    def set_fact_context(self):
+        unknown_fact = self.facts.get_unknown_fact()
+        if unknown_fact:
+            self.fact_context.set_fact(unknown_fact)
 
-        respone = dict()
-        if new_terminals:
-            self.terminal_facts.extend(new_terminals)
-            response['new_terminals'] = new_terminals
+        return self.fact_context.fact
+
+    def step(self, user_input=None):
+        # SHIT SHIT TODO: when all facts established - try moving to the next Stage 
+        if not self.fact_context.fact and not self.set_fact_context():
+            self.is_over = True
+            return ConvoStepResponse(continues=False)
+
+        entities_input = self.parse_input(user_input)
+        self.fact_context.interpret_entities(entities_input)
+
+        response = ConvoStepResponse()
+
+        if self.fact_context.established():
+            self.facts.accept_new_fact(self.fact_context.fact)
+            response.established_fact = self.fact_context.fact
+            response.continues = bool(self.set_fact_context())
+        else:
+            response.text = self.fact_context.get_next_bot_phrase()
+
+        if not response.continues:
+            self.is_over = True
 
         return response
+
+class StagedConvo(object):
+    """ staged conversation """
+    def __init__(self, rules):
+        """ stages is a tree of indeopendent `ConvoState` objects with simple transition rules
+        """
+        self.stages = [ConvoState(self.make_facts(r)) for r in rules]
+
+    def make_facts(self, rules):
+        return ConvoFacts()
+
+    def get_next_stage(self):
+        logging.error('Not Umplemented')
+
+class ConversationIndex(object):
+    """ Global object shared by all convos
+    convo environment - has access to all knows current conversations index by
+    `convo_id`
+    """
+    def __init__(self, stage_rules):
+        """
+        stage_rules - list(StageRules) of rule sets for each stage 
+        """
+        self.stage_rules = stage_rules
+        self.convo_facts = dict()
+
+    def terminate_convo(self, convo_id):
+        self.convo_facts.pop(convo_id)
+
+    def create_convo(self, convo_id):
+        """ """
+        self.convo_facts[convo_id] = StagedConvo(self.terminate_convo)
+        return self.convo_facts[convo_id]
+
+    def get_convo_facts(self, convo_id):
+        # retrieves current fact state for a given convo_id
+        return self.convo_facts.get(convo_id)

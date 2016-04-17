@@ -10,5 +10,9 @@ class BarzerSettings(object):
 class RulesSettings(object):
     RULES_STRATEGY = {}
     RULES_FILES = []
-
+    STAGES = [
+        {'name': 'representation'},
+        {'name': 'diagnostic'},
+        {'name': 'personal details'},
+    ]
 

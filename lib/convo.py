@@ -66,13 +66,13 @@ class CurrentFactContext(object):
         self.fact, self.entities = fact, []
 
 class ConvoStepResponse(object):
-    """ ConvoState.step() returns these objects """
+    """ ConvoStage.step() returns these objects """
     def __init__(self, text=None, established_fact=None, continues=True):
         self.text = text
         self.continues = state
         self.established_fact = established_fact
 
-class ConvoState(object):
+class ConvoStage(object):
     def __init__(self, facts):
         """
         convo_id (int) conversation id
@@ -131,9 +131,9 @@ class ConvoErrorIsOver(ConvoError): """ conversation is over """
 class StagedConvo(object):
     """ staged conversation """
     def __init__(self, rules):
-        """ stages is a tree of indeopendent `ConvoState` objects with simple transition rules
+        """ stages is a tree of indeopendent `ConvoStage` objects with simple transition rules
         """
-        self.stages = [ConvoState(self.make_facts(r)) for r in rules]
+        self.stages = [ConvoStage(self.make_facts(r)) for r in rules]
 
     def make_facts(self, rules):
         return ConvoFacts()

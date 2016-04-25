@@ -1,6 +1,6 @@
 import unittest
 import sys, json
-from lib import calc_graph
+from lib import calc_graph, convo_calc
 
 class CalcGraphTestCase(unittest.TestCase):
     CG_DATA = [

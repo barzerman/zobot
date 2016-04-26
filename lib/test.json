@@ -1,0 +1,33 @@
+{
+	"outcomes":{
+		"flu":{
+			"facts": ["headache", "high_temperature"]
+		},
+		"indigestion":{
+			"facts": ["bloating", "belly_pain"]
+		}
+	},
+	"facts":{
+		"headache": {
+			"entities": ["headache"]
+		},
+		"high_temperature": {
+			"entities": ["temperature", "high"]
+		},
+		"bloating":{
+			"entities": ["bloating"]
+		},
+		"belly_pain":{
+			"entities": ["belly", "pain"]
+		}
+	},
+	"entities":[
+		"headache", "high_temperature", "bloating", "belly_pain"
+	],
+	"questions":[
+		{"text": "Do you have bloating?", "entities": ["bloating"]},
+		{"text": "Do you have a headache?", "entities": ["headache"]},
+		{"text": "Do you have temperature?", "entities": ["high_temperature"]},
+		{"text": "Do you have a belly pain?", "entities": ["belly_pain"]}
+	]
+}

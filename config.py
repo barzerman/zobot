@@ -6,3 +6,13 @@ class BarzerSettings(object):
             'key': 'yTIzlFaf02QBBa3wRNPD2xjeI0R1P1hPHwL3dHtv'
         }
     }
+
+class RulesSettings(object):
+    RULES_STRATEGY = {}
+    RULES_FILES = []
+    STAGES = [
+        {'name': 'representation'},
+        {'name': 'diagnostic'},
+        {'name': 'personal details'},
+    ]
+

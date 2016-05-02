@@ -1,33 +1,42 @@
 {
-	"outcomes":{
-		"flu":{
+	"composite_facts":[
+		{
+			"id": "flu",
+			"operator": "AND",
 			"facts": ["headache", "high_temperature"]
 		},
-		"indigestion":{
-			"facts": ["bloating", "belly_pain"]
+		{
+			"id": "indisgestion",
+			"operator": "AND",
+			"facts": ["bloating", "stomachache"]
 		}
-	},
-	"facts":{
-		"headache": {
-			"entities": ["headache"]
-		},
-		"high_temperature": {
-			"entities": ["temperature", "high"]
-		},
-		"bloating":{
-			"entities": ["bloating"]
-		},
-		"belly_pain":{
-			"entities": ["belly", "pain"]
-		}
-	},
-	"entities":[
-		"headache", "high_temperature", "bloating", "belly_pain"
 	],
-	"questions":[
-		{"text": "Do you have bloating?", "entities": ["bloating"]},
-		{"text": "Do you have a headache?", "entities": ["headache"]},
-		{"text": "Do you have temperature?", "entities": ["high_temperature"]},
-		{"text": "Do you have a belly pain?", "entities": ["belly_pain"]}
+	"facts":[
+		{
+			"id": "headache",
+			"entities": ["headache"],
+			"question": "Do you have a headache?"
+		},
+		{
+			"id": "high_temperature",
+			"entities": ["temperature", "high"],
+			"question": "Do you have high temperature?"
+		},
+		{
+			"id": "bloating",
+			"entities": ["bloating"],
+			"question": "Do you have bloating?"
+		},
+		{
+			"id": "stomachache",
+			"entities": ["stomachache"],
+			"question": "Do yuo have stomachache?"
+		}
+	],
+	"entities":[
+		"headache", "high_temperature", "bloating", "stomachache"
+	],
+	"terminals": [
+		"flu", "indisgestion"
 	]
 }

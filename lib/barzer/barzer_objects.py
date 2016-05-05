@@ -1,7 +1,7 @@
 # pylint: disable=missing-docstring, invalid-name, broad-except, logging-format-interpolation
 from __future__ import division, absolute_import
 from collections import namedtuple
-import sys
+import sys  # pylint: disable=unused-import
 import logging
 
 class EntityId(namedtuple('_EntityId', ('eclass', 'subclass', 'id'))):

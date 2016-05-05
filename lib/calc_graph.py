@@ -1,11 +1,10 @@
-from collections import OrderedDict, namedtuple
-import json
-import sys
-
+# pylint: disable=line-too-long, missing-docstring, invalid-name
+""" core calc graph objects """
 class NodeValueNotSet(Exception):
-    """ """
+    """ attempt to get the not set value"""
 
 class CGNodeValueType(object):
+    """ calc graph node value type """
     def __init__(self, node):
         pass
 
@@ -18,24 +17,32 @@ class CGNodeValue(object):
             self.set_val(value)
 
     def unset(self):
-        if hasattr(self.val_):
+        """ unset value """
+        if hasattr(self, 'val_'):
             delattr(self, 'val_')
 
     def is_set(self):
+        """ when true it's safe to get value by calling `value`"""
         return hasattr(self, 'val_')
 
     def set_val(self, val):
+        """ set value """
         if not self.is_array and isinstance(val, (list, set, frozenset)):
             self.is_array = True
         setattr(self, 'val_', val)
 
+    @property
     def value(self):
-        return self.val_
+        """ value if set, exception otherwise """
+        try:
+            return getattr(self, 'val_')
+        except AttributeError:
+            NodeValueNotSet()
 
-    def to_dict(self):
+    def to_dict(self):  # pylint: disable=missing-docstring
         if self.is_set():
             return {
-                'value': self.val_
+                'value': getattr(self, 'val_')
             }
         else:
             return 'NOT SET'
@@ -48,17 +55,17 @@ class CGChildIterator(object):
         self.children = children
         self.pos = 0
 
-    def current(self):
+    def current(self): # pylint: disable=missing-docstring
         return self.children[self.pos] if self.pos < len(self.children) else None
 
-    def next(self):
+    def next(self):  # pylint: disable=missing-docstring
         self.pos += 1
         return self.current()
 
 class CGOperator(object):
     """ default operator is a list """
     op_name = 'LIST'
-    def calc(self, children=None, input_val=None):
+    def calc(self, children=None, input_val=None):  # pylint: disable=no-self-use, unused-argument
         """
         Arguments:
             children iterable(CGNode) - parent nodes, on which results of
@@ -75,7 +82,7 @@ class CGOperator(object):
                 else:
                     output_value.set_val(children[0].value)
 
-        return output_value.value()
+        return output_value.value
 
 
     @classmethod
@@ -84,7 +91,7 @@ class CGOperator(object):
         return CGNodeValue(
             value=value,
             val_type=val_type,
-            is_array = num_children and num_children > 0
+            is_array=num_children and num_children > 0
         )
 
     @classmethod
@@ -105,6 +112,7 @@ class CGNode(object):
         """
         self.op = op or CGOperator()
         self.children = None
+        self.child_iter = None
         self.value = self.op.init_output_val(val_type=val_type, value=value, num_children=num_children)
 
     def set_children(self, children):
@@ -190,16 +198,16 @@ class CG(object):
             for d in data:
                 return node.set_children([self.init_from_data(d, CGNode()) for d in data])
         elif isinstance(data, dict):
-            id =data.get('id')
-            val_type =data.get('type')
-            op =data.get('op')
-            value =data.get('value')
+            the_id = data.get('id')
+            val_type = data.get('type')
+            op = data.get('op')
+            value = data.get('value')
 
             n = CGNode(op, val_type, value)
-            if id is not None:
-                self.nodes[id] = n
+            if the_id is not None:
+                self.nodes[the_id] = n
 
-            children =data.get('children')
+            children = data.get('children')
             if children:
                 return self.init_from_data(children, n)
             else:

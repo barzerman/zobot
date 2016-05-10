@@ -19,7 +19,7 @@
 		},
 		{
 			"id": "high_temperature",
-			"entities": ["temperature", "high"],
+			"entities": ["temperature"],
 			"question": "Do you have high temperature?"
 		},
 		{
@@ -30,11 +30,11 @@
 		{
 			"id": "stomachache",
 			"entities": ["stomachache"],
-			"question": "Do yuo have stomachache?"
+			"question": "Do you have stomachache?"
 		}
 	],
 	"entities":[
-		"headache", "high_temperature", "bloating", "stomachache"
+		"headache", "temperature", "bloating", "stomachache"
 	],
 	"terminals": [
 		"flu", "indisgestion"

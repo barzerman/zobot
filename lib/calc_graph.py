@@ -168,13 +168,14 @@ class CGNode(object):
                 return
             if current_child.is_set():
                 current_child = self.find_next_unset_child()
-                if current_child:
-                    return current_child.step(input_val=input_val)
-                else: # all children have been computed
-                    self.value = self.op.calc(
-                        children=self.get_children(),
-                        input_val=input_val
-                    )
+            if current_child:
+                res = current_child.step(input_val=input_val)
+                return res
+            else: # all children have been computed
+                self.value = self.op.calc(
+                    children=self.get_children(),
+                    input_val=input_val
+                )
 
 class CG(object):
     """ calculation dag """

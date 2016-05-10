@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict, deque
 from pqdict import PQDict
+from calc_graph import *
 
 class Fact:
 
@@ -12,8 +13,8 @@ class Fact:
 
 class Entity:
 
-    def __init__(self, data):
-        self.id = data['id']
+    def __init__(self, _id):
+        self.id = _id
 
 
 class CompositeFact:
@@ -44,17 +45,17 @@ class Protocol:
         G = defaultdict(set)
         composite_facts = {}
         for composite_fact in data['composite_facts']:
-            composite_facts[cfact['id']] = composite_fact
+            composite_facts[composite_fact['id']] = composite_fact
 
-            for fact in composite_fact['facts']:
-                G[fact['id']].add(composite_fact['id'])
+            for fact_id in composite_fact['facts']:
+                G[fact_id].add(composite_fact['id'])
 
         sequence = []
 
         def dfs(v):
             for v1 in G[v]:
                 dfs(v1)
-            if v1 not in self.facts:
+            if v not in self.facts:
                 sequence.append(v)
 
         for fact in self.facts.keys():
@@ -212,7 +213,7 @@ class ConvoProtocol(CGNode):
         self.facts_ = {}
 
         for t in protocol.terminals:
-            self.terminals[t.id] = ConvoCompositeFact(t, terminal=True)
+            self.terminals[t.id] = ConvoCompositeFact(protocol=self, fact=t, terminal=True)
 
         self.set_children(self.terminals.values())
         self.priorities = PQDict()
@@ -222,7 +223,7 @@ class ConvoProtocol(CGNode):
     def extract_entities(self, input_val):
         pass # TODO
 
-    def create_or_update_fact(protocol, f, parents):
+    def create_or_update_fact(self, protocol, f, parents):
         if f.id in self.facts_:
             self.facts_[f.id].add_parents(parents)
         else:
@@ -249,7 +250,7 @@ class ConvoProtocol(CGNode):
         while len(to_update) > 0:
             fact = to_update.popleft()
             fact.update()
-            if for parent in fact.parents:
+            for parent in fact.parents:
                 if parent.id not in visited:
                     to_update.append(parent)
                     visited.add(parent.id)

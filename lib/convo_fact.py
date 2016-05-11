@@ -1,32 +1,27 @@
-import json
+# pylint: disable=missing-docstring, invalid-name, trailing-whitespace, line-too-long
 from collections import defaultdict, deque
-from pqdict import PQDict
-from calc_graph import *
+from zobot.lib.pqdict import PQDict
+from zobot.lib import calc_graph
 
-class Fact:
-
+class Fact(object):
     def __init__(self, data):
         self.id = data['id']
         self.entities = data['entities']
         self.question = data['question']
 
 
-class Entity:
-
+class Entity(object):
     def __init__(self, _id):
         self.id = _id
 
 
-class CompositeFact:
-
+class CompositeFact(object):
     def __init__(self, protocol, data):
         self.id = data['id']
         self.operator = data['operator']
-        self.facts = [protocol.facts[fact_id] for fact_id in data['facts']]
+        self.facts = [protocol.facts[fact_id] for fact_id in data['facts'] if fact_id in protocol.facts]
 
-
-class Protocol:
-
+class Protocol(object):
     def __init__(self, data):
         self.entities = {}
         self.facts = {}
@@ -68,14 +63,10 @@ class Protocol:
 
 
 
-class ProbaValue(CGNodeValue):
-
+class ProbaValue(calc_graph.CGNodeValue):
     def __init__(self, value=None, val_type=None, is_array=False):
-        self.val_type = val_type
-        self.is_array = is_array
+        super(ProbaValue, self).__init__(value, val_type, is_array)
         self.proba_val = 0.5
-        if value is not None:
-            self.set_val(value)
 
     def to_dict(self):
         return self.proba_val
@@ -84,37 +75,31 @@ class ProbaValue(CGNodeValue):
         self.proba_val = p
         if p == 1:
             self.set_val(True)
-        if p == 0:
+        elif p == 0:
             self.set_val(False)
 
     def proba(self):
         return self.proba_val
 
     def is_true(self):
-        return self.is_set() and self.val_ == True
+        return self.is_set() and self.value()
 
     def is_false(self):
-        return self.is_set() and self.val_ == False
+        return self.is_set() and not self.value()
 
     def to_f(self):
-        if self.is_false():
-            return 0
-        if self.is_true():
-            return 1
-        else:
-            return self.proba()
+        return int(bool(self.value())) if self.is_set() else self.proba()
 
 
-class AndOperator(CGOperator):
+class AndOperator(calc_graph.CGOperator):
     op_name = 'AND'
-
     def calc(self, children=None, input_val=None):
         output_value = ProbaValue()
-        output_value.set_proba(reduce(lambda x,y: x*y, [c.value.proba() for c in children]))
+        output_value.set_proba(reduce(lambda x, y: x*y, [c.value.proba() for c in children]))
         return output_value
 
 
-class OrOperator(CGOperator):
+class OrOperator(calc_graph.CGOperator):
     op_name = 'OR'
 
     def calc(self, children=None, input_val=None):
@@ -123,14 +108,14 @@ class OrOperator(CGOperator):
         return output_value
 
 
-class ConvoFact(CGNode):
+class ConvoFact(calc_graph.CGNode):
 
     def __init__(self, protocol, fact, parents=None):
         super(ConvoFact, self).__init__()
         self.value = ProbaValue()
         self.id = fact.id
         self.question = fact.question
-        self.parents = parents
+        self.parents = set(parents or [])
 
         for ent in fact.entities:
             protocol.entity_fact_index[ent].add(self)
@@ -139,10 +124,10 @@ class ConvoFact(CGNode):
         return self.question
 
     def remove_parent(self, _id):
-        self.parents = filter(lambda p: p.id != _id, self.parents)
+        self.parents.remove(_id)
 
     def add_parent(self, p):
-        self.parrents.append(p)
+        self.parents.add(p)
 
     def update(self, entity, proba=1):
         self.value.set_proba(proba) # TODO
@@ -162,25 +147,29 @@ class ConvoFact(CGNode):
         return data
 
 
-class ConvoCompositeFact(CGNode):
-
+class ConvoCompositeFact(calc_graph.CGNode):
+    OPERATOR_MAP = {
+        'AND': AndOperator,
+        'OR': OrOperator,
+    }
     def __init__(self, protocol, fact, parents=None, terminal=False):
-        if fact.operator == "AND":
-            operator = AndOperator()
-        if fact.operator == "OR":
-            operator = OrOperanor()
-        self.parents = parents
+        op = self.OPERATOR_MAP.get(fact.operator)
+        super(ConvoCompositeFact, self).__init__(
+            op=op() if op else None
+        )
+
+        self.parents = set(parents or [])
         self.terminal = terminal
         self.priorities = PQDict()
         self.protocol = protocol
-        if not self.parents:
-            self.parents = []
 
-        super(ConvoCompositeFact, self).__init__(op=operator)
         self.id = fact.id
-        self.set_children([protocol.create_or_update_fact(protocol, f, [self]) for f in fact.facts])
+        self.set_children([
+            protocol.create_or_update_fact(
+                protocol, f, [self]) for f in fact.facts])
+
         self.value = self.op.calc(children=self.get_children())
-    
+
     def set_children(self, children):
         self._nodes = {}
         for ch in children:
@@ -197,13 +186,13 @@ class ConvoCompositeFact(CGNode):
 
 
     def remove_parent(self, _id):
-        self.parents = filter(lambda p: p.id != _id)
+        self.parents.remove(_id)
 
     def add_parent(self, p):
-        self.parrents.append(p)
+        self.parents.add(p)
 
     def current_child(self):
-        dkey, pkey = self.priorities.peek()
+        dkey, _ = self.priorities.peek()
         return self._nodes[dkey]
 
     def update(self):
@@ -217,7 +206,7 @@ class ConvoCompositeFact(CGNode):
         if self.value.is_false():
             for ch in self.children:
                 ch.remove_parent(self.id)
-    
+
     def score(self):
         if self.value.is_set():
             return 1
@@ -225,7 +214,7 @@ class ConvoCompositeFact(CGNode):
             return 1-self.value.proba()
 
 
-class ConvoProtocol(CGNode):
+class ConvoProtocol(calc_graph.CGNode):
 
     def __init__(self, protocol):
         super(ConvoProtocol, self).__init__()
@@ -293,7 +282,7 @@ class ConvoProtocol(CGNode):
         if input_val:
             entities = self.extract_entities(input_val) # TODO
             self.update_facts(entities, 'No' in input_val) # TODO
-        
+
         resp = self.current_child().step(input_val)
 
         for _id, t in self.terminals.items():
@@ -304,6 +293,6 @@ class ConvoProtocol(CGNode):
         return resp
 
     def current_child(self):
-        dkey, pkey = self.priorities.peek()
+        dkey, _ = self.priorities.peek()
         return self.terminals[dkey]
 

@@ -1,7 +1,7 @@
 # pylint: disable=missing-docstring, invalid-name, trailing-whitespace, line-too-long
 from collections import defaultdict, deque
-from zobot.lib.pqdict import PQDict
-from zobot.lib import calc_graph
+from lib.pqdict import PQDict
+from lib import calc_graph
 
 class Fact(object):
     def __init__(self, data):
@@ -124,7 +124,8 @@ class ConvoFact(calc_graph.CGNode):
         return self.question
 
     def remove_parent(self, _id):
-        self.parents.remove(_id)
+        if _id in self.parents:
+            self.parents.remove(_id)
 
     def add_parent(self, p):
         self.parents.add(p)

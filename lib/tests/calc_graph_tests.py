@@ -1,3 +1,4 @@
+# pylint: disable=missing-docstring,unused-import,invalid-name
 import unittest
 import sys, json
 from lib import calc_graph, convo_calc
@@ -14,7 +15,7 @@ class CalcGraphTestCase(unittest.TestCase):
         self.assertEquals(len(cgdict['children']), len(self.CG_DATA))
         # computational step
         val, response = cg.step()
-        self.assertTrue(cg.value.value())
+        self.assertTrue(cg.value.value)
 
 if __name__ == '__main__':
     unittest.main()

@@ -121,7 +121,7 @@ class CGNode(object):
         self.op = op
         self.children = None
         self.child_iter = None
-        self.value = self.op.init_output_val(val_type=val_type, value=value, num_children=num_children)
+        self.value = CGOperator.init_output_val(val_type=val_type, value=value, num_children=num_children)
 
     def set_children(self, children):
         if not children:
@@ -130,7 +130,7 @@ class CGNode(object):
             return self.children
 
         self.children = children
-        self.child_iter = self.op.arg_iterator()(self.children)
+        self.child_iter = CGOperator.arg_iterator()(self.children)
 
         return self.children
 
@@ -162,7 +162,7 @@ class CGNode(object):
                 return None
 
     def to_dict(self):
-        data = {'op': self.op.op_name, 'value': self.value.to_dict()}
+        data = {'op': self.op.op_name if self.op else CGOperator.op_name, 'value': self.value.to_dict()}
         if self.children:
             data['children'] = [c.to_dict() for c in self.children]
         return data

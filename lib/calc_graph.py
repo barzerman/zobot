@@ -3,14 +3,17 @@
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
 
-class CGNodeValueType(object):
-    """ calc graph node value type """
-    def __init__(self, node):
-        pass
+# end of value types
 
 class CGNodeValue(object):
     """ node value """
     def __init__(self, value=None, val_type=None, is_array=False):
+        """
+        Arguments:
+            value (object) - value
+            val_type (CGNodeValueType)
+            is_array (bool)
+        """
         self.val_type = val_type
         self.is_array = is_array
         if value is not None:
@@ -103,8 +106,12 @@ class CGStepResponse(object):
     """ represents CGNode calculation step response
     may be returned from `CGNode.step`
     """
+    def __init__(self, text, beads):
+        self.text = text
+        self.beads = beads
 
 class CGNode(object):
+    """ baseclass for the calc graph node """
     def __init__(self, op=None, val_type=None, value=None, num_children=None):
         """
         Arguments:

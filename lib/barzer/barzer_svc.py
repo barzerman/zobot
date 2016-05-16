@@ -1,3 +1,4 @@
+# pylint: disable=missing-docstring, logging-format-interpolation, invalid-name
 from __future__ import absolute_import, division
 import urllib
 import json
@@ -15,7 +16,7 @@ class Barzer(object):
             return '{}?key={}'.format(url, key)
 
         self.url = {k: make_instance_url(v['url'], v['key']) for k, v in
-                         BarzerSettings.BARZER_INSTANCES.iteritems()}
+                    BarzerSettings.BARZER_INSTANCES.iteritems()}
 
     def get_url(self, query, instance=None):
         """
@@ -38,10 +39,9 @@ class Barzer(object):
         url = self.get_url(query=query, instance=instance)
         try:
             response = urllib.urlopen(url)
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             return {'error': 'request {} failed with error: {}'.format(url,
-                                                                       str(ex)) }
+                                                                       str(ex))}
         return json.loads(response.read())
-
 
 barzer = Barzer()

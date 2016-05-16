@@ -44,7 +44,16 @@ class Punct(Token):
 class Number(ValueBead):
     type_name = 'number'
 
-class Entity(Bead):
+class EntityBase(Bead):
+    """ parent type for entity based types Entity, ERC, EVR """
+    def match_ent(self, ent):
+        """ given another entbase object compares the main entity """
+        return (
+            self.eclass == ent.eclass and # pylint: disable=no-member
+            self.subclass == self.subclass and # pylint: disable=no-member
+            self.id == ent.id) # pylint: disable=no-member
+
+class Entity(EntityBase):
     def __init__(self, data):
         """
         Arguments:
@@ -83,13 +92,48 @@ class Range(Bead):
     def __str__(self):
         return '({}, {})'.format(str(self.lo), str(self.hi))
 
-class EVR(Bead):
+    def get_as_type_pair(self, the_type=float):
+        try:
+            lo = the_type(self.lo)
+        except Exception:
+            lo = None
+
+        try:
+            hi = the_type(self.lo)
+        except Exception:
+            hi = None
+
+        if lo is not None and hi is not None:
+            return (lo, hi) if lo < hi else (hi, lo)
+        else:
+            return (lo, hi)
+
+    def get_as_single_number(self, num_type=float):
+        pair = self.get_as_type_pair(the_type=num_type)
+        if pair[0] is None or pair[1] is None:
+            return None
+        else:
+            return (pair[0] + pair[1])/2
+
+class EVR(EntityBase):
     """ entity value range """
     type_name = "evr"
     def __init__(self, data):
         super(EVR, self).__init__(data)
         self.ent = Entity(data['ent'])
         self.values = [BeadFactory.make_bead_from_dict(x) for x in data.get('values', [])]
+
+    @property
+    def eclass(self):
+        return self.ent
+
+    @property
+    def subclass(self):
+        return self.subclass
+
+    @property
+    def id(self):
+        return self.id
 
     def __str__(self):
         return '{}:({} [{}])'.format(
@@ -98,7 +142,15 @@ class EVR(Bead):
     def ent_id(self):
         return self.ent.id
 
-class ERC(Bead):
+    def iterate_type(self, the_type=Number):
+        """ yields all values of type the_type.
+        NOTE: the_type can also be a tuple
+        """
+        for v in self.values:
+            if isinstance(v, the_type):
+                yield v
+
+class ERC(EntityBase):
     type_name = "erc"
     """ entity range combo """
     def __init__(self, data):

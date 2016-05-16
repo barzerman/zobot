@@ -61,12 +61,12 @@ class Entity(EntityBase):
         """
         super(Entity, self).__init__(data)
         self.eclass = data['class']
-        self.scope = data['scope']
-        self.category = data['category']
         self.subclass = data['subclass']
         self.id = data['id']
         self.name = data['name']
-        self.relevance = data['rel']
+        self.scope = data.get('scope')
+        self.category = data.get('category')
+        self.relevance = data.get('rel', 0)
 
     def __repr__(self):
         return self.__str__()

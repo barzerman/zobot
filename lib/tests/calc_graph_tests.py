@@ -1,7 +1,9 @@
-# pylint: disable=missing-docstring,unused-import,invalid-name
+# pylint: disable=missing-docstring,unused-import,invalid-name,no-self-use
 import unittest
 import sys, json
-from lib import calc_graph, convo_calc
+from lib import calc_graph, convo_calc, cg_ent_fact
+from lib.barzer.barzer_svc import barzer
+from lib.barzer import barzer_objects
 
 class CalcGraphTestCase(unittest.TestCase):
     CG_DATA = [
@@ -16,6 +18,24 @@ class CalcGraphTestCase(unittest.TestCase):
         # computational step
         val, response = cg.step()
         self.assertTrue(cg.value.value)
+
+
+class CgEntFact(unittest.TestCase):
+    def test_cg_ent_node_basic(self):
+        objbarz = barzer_objects.BeadFactory.make_beads_from_barz(
+            barzer.get_json('headache'))
+        print >> sys.stderr, "DEBUG >>>", objbarz, "<<<"
+        node = cg_ent_fact.CGEntityNode(
+            barzer_objects.Entity(
+                {
+                    'class': 459,
+                    'subclass': 3,
+                    'id': 'HEADACHE',
+                    'name': 'Headache'
+                }))
+
+        node.step()
+
 
 if __name__ == '__main__':
     unittest.main()

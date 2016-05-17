@@ -1,14 +1,17 @@
 # pylint: disable=missing-docstring,unused-import,invalid-name,no-self-use
 import unittest
-import sys, json
-from lib import calc_graph, convo_calc, cg_ent_fact
+import sys
+from lib import calc_graph
+from lib import cg_ent_fact
 from lib.barzer.barzer_svc import barzer
 from lib.barzer import barzer_objects
+
 
 class CalcGraphTestCase(unittest.TestCase):
     CG_DATA = [
         {'value': '1234'}
     ]
+
     def test_basic(self):
         cg = calc_graph.CG(self.CG_DATA)
         n = calc_graph.CGNode()

@@ -1,0 +1,42 @@
+{
+	"composite_facts":[
+		{
+			"id": "flu",
+			"operator": "AND",
+			"facts": ["headache", "high_temperature"]
+		},
+		{
+			"id": "indisgestion",
+			"operator": "AND",
+			"facts": ["bloating", "stomachache"]
+		}
+	],
+	"facts":[
+		{
+			"id": "headache",
+			"entities": ["headache"],
+			"question": "Do you have a headache?"
+		},
+		{
+			"id": "high_temperature",
+			"entities": ["temperature"],
+			"question": "Do you have high temperature?"
+		},
+		{
+			"id": "bloating",
+			"entities": ["bloating"],
+			"question": "Do you have bloating?"
+		},
+		{
+			"id": "stomachache",
+			"entities": ["stomachache"],
+			"question": "Do you have stomachache?"
+		}
+	],
+	"entities":[
+		"headache", "temperature", "bloating", "stomachache"
+	],
+	"terminals": [
+		"flu", "indisgestion"
+	]
+}

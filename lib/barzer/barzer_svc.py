@@ -6,8 +6,10 @@ import logging
 
 from config import BarzerSettings
 
+
 class BarzerError(Exception):
     """ barzer access exception """
+
 
 class Barzer(object):
     """ entity extraction layer """
@@ -15,8 +17,7 @@ class Barzer(object):
         def make_instance_url(url, key):
             return '{}?key={}'.format(url, key)
 
-        self.url = {k: make_instance_url(v['url'], v['key']) for k, v in
-                    BarzerSettings.BARZER_INSTANCES.iteritems()}
+        self.url = {k: make_instance_url(v['url'], v['key']) for k, v in BarzerSettings.BARZER_INSTANCES.iteritems()}
 
     def get_url(self, query, instance=None):
         """

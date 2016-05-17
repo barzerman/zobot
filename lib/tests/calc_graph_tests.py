@@ -1,11 +1,12 @@
 import unittest
-import sys, json
-from lib import calc_graph, convo_calc
+from lib import calc_graph
+
 
 class CalcGraphTestCase(unittest.TestCase):
     CG_DATA = [
         {'value': '1234'}
     ]
+
     def test_basic(self):
         cg = calc_graph.CG(self.CG_DATA)
         n = calc_graph.CGNode()

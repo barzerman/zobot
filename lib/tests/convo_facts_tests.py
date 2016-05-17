@@ -1,9 +1,10 @@
 import unittest
-import sys, json
+import json
 from lib import calc_graph, convo_fact
 import pprint
 
 pp = pprint.PrettyPrinter()
+
 
 class ConvoFactTestCase(unittest.TestCase):
 
@@ -21,7 +22,6 @@ class ConvoFactTestCase(unittest.TestCase):
         # pp.pprint(cg.root.to_dict())
         (val, txt) = cg.step()
         self.assertTrue('indisgestion' in txt)
-
 
     def test_indisgestion(self):
         data = json.load(open('lib/tests/test.json'))
@@ -44,12 +44,9 @@ class ConvoFactTestCase(unittest.TestCase):
         print cg.step()
         print cg.step('No, I do not have bloating')
         pp.pprint(cg.root.to_dict())
-   
         print cg.step('I have a headache')
         val, txt = cg.step('I have high temperature')
         self.assertTrue("flu" in txt)
-
-
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 from collections import defaultdict, deque
 import pqdict
 from lib import calc_graph
+from toposort import toposort
 
 
 class Fact(object):
@@ -47,19 +48,10 @@ class Protocol(object):
             for fact_id in composite_fact['facts']:
                 G[fact_id].add(composite_fact['id'])
 
-        sequence = []
-
-        def dfs(v):
-            for v1 in G[v]:
-                dfs(v1)
-            if v not in self.facts:
-                sequence.append(v)
-
-        for fact in self.facts.keys():
-            dfs(fact)
-
-        for _id in sequence:
-            self.facts[_id] = CompositeFact(self, composite_facts[_id])
+        for facts_of_equal_priority in toposort(G):
+            for _id in facts_of_equal_priority:
+                if _id not in self.facts:
+                    self.facts[_id] = CompositeFact(self, composite_facts[_id])
 
         self.terminals = [self.facts[t] for t in data['terminals']]
 

@@ -2,6 +2,7 @@ import sys
 import re
 import argparse
 
+
 # TODO: move this into a generic ile
 class FileProcessor(object):
     def __init__(
@@ -66,7 +67,7 @@ class FileProcessor(object):
         return count
 
     def process_all_files(self):
-        stats= dict()
+        stats = dict()
         for fn in self.files:
             infp, outfp = self._open_files(fn)
             stats[fn] = self.process_file(infp, outfp)
@@ -75,10 +76,12 @@ class FileProcessor(object):
     def process_line(self, l):
         return l
 
+
 class ArgsFilesProcessor(FileProcessor):
     def __init__(self, args, use_stdin=False):
         self.args = args
         super(ArgsFilesProcessor, self).__init__(args.file, use_stdin=use_stdin)
+
 
 class EntityNamesProcessor(ArgsFilesProcessor):
     split_re = re.compile(r'[^0-9a-zA-Z]+')
@@ -97,7 +100,7 @@ class EntityNamesProcessor(ArgsFilesProcessor):
 
     def process_line(self, line):
         id = self.mk_id_from_name(line)
-        return id + '|' + line + '|' + line +'\n'
+        return id + '|' + line + '|' + line + '\n'
 
 
 def main(args):
@@ -110,7 +113,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--noid", action="store_true", help="autogenerate ids")
     parser.add_argument("--outext", default=".out", help="outputfile extension")
-    parser.add_argument('file',nargs='*')
+    parser.add_argument('file', nargs='*')
 
     args = parser.parse_args()
     main(args)

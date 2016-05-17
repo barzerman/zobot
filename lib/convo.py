@@ -1,5 +1,4 @@
 import logging
-import containers
 from config import RulesSettings
 import barzer
 
@@ -21,16 +20,18 @@ class Fact(object):
         logging.error('Unimplemented')
         return ""
 
+
 class ConvoFacts(object):
     """ current facts state for a single convo """
     def __init__(self, rules):
         """ creates an empty ConvoFacts impression based on the rules """ 
-        #TODO: parse rules
+        # TODO: parse rules
 
     def get_unknown_fact(self, entities_input):
         """ returns next facts that need to be established """
         logging.error('Unimplemented')
         return Fact()
+
 
 class ConvoRules(object):
     """ Global object: user defined rules - shared by all convos """
@@ -44,6 +45,7 @@ class ConvoRules(object):
         """ rules - definitions and relationships between facts and entities  """
         for fn in RulesSettings.RULES_FILES:
             self.parse_rules_file(fn)
+
 
 class CurrentFactContext(object):
     """ context for the fact currently being established """
@@ -65,12 +67,14 @@ class CurrentFactContext(object):
     def set_fact(self, fact):
         self.fact, self.entities = fact, []
 
+
 class ConvoStepResponse(object):
     """ ConvoStage.step() returns these objects """
     def __init__(self, text=None, established_fact=None, continues=True):
         self.text = text
         self.continues = state
         self.established_fact = established_fact
+
 
 class ConvoStage(object):
     def __init__(self, facts):
@@ -140,6 +144,7 @@ class StagedConvo(object):
 
     def get_next_stage(self):
         logging.error('Not Umplemented')
+
 
 class ConversationIndex(object):
     """ Global object shared by all convos

@@ -1,6 +1,6 @@
 # pylint: disable=missing-docstring, invalid-name, trailing-whitespace, line-too-long
 from collections import defaultdict, deque
-from lib.pqdict import PQDict
+import pqdict
 from lib import calc_graph
 
 
@@ -135,13 +135,13 @@ class ConvoFact(calc_graph.CGNode):
     def update(self, entity, proba=1):
         self.value.set_proba(proba)  # TODO
         for parent in self.parents:
-            parent.priorities[self.id] = self.score()
+            parent.pq[self] = self.score()
 
     def score(self):
-        if self.value.is_true():
-            return 10**5
+        if self.value.is_set():
+            return 0
         else:
-            return 10**5 - len(self.parents)
+            return len(self.parents)
 
     def to_dict(self):
         data = {'id': self.id, 'op': self.op.op_name, 'value': self.value.to_dict()}
@@ -164,7 +164,7 @@ class ConvoCompositeFact(calc_graph.CGNode):
 
         self.parents = set(parents or [])
         self.terminal = terminal
-        self.priorities = PQDict()
+        self.pq = pqdict.maxpq()
         self.protocol = protocol
 
         self.id = fact.id
@@ -177,7 +177,7 @@ class ConvoCompositeFact(calc_graph.CGNode):
     def set_children(self, children):
         self._nodes = {}
         for ch in children:
-            self.priorities[ch.id] = 10**5
+            self.pq[ch] = 0
             self._nodes[ch.id] = ch
         super(ConvoCompositeFact, self).set_children(children)
 
@@ -194,16 +194,15 @@ class ConvoCompositeFact(calc_graph.CGNode):
         self.parents.add(p)
 
     def current_child(self):
-        dkey, _ = self.priorities.peek()
-        return self._nodes[dkey]
+        return self.pq.top()
 
     def update(self):
         self.value = self.op.calc(children=self.get_children())
         if self.terminal:
-            self.protocol.priorities[self.id] = self.score()
+            self.protocol.pq[self] = self.score()
         else:
             for parent in self.parents:
-                parent.priorities[self.id] = self.score()
+                parent.pq[self] = self.score()
 
         if self.value.is_false():
             for ch in self.children:
@@ -211,9 +210,9 @@ class ConvoCompositeFact(calc_graph.CGNode):
 
     def score(self):
         if self.value.is_set():
-            return 1
+            return 0
         else:
-            return 1 - self.value.proba()
+            return self.value.proba()
 
 
 class ConvoProtocol(calc_graph.CGNode):
@@ -230,9 +229,9 @@ class ConvoProtocol(calc_graph.CGNode):
             self.terminals[t.id] = ConvoCompositeFact(protocol=self, fact=t, terminal=True)
 
         self.set_children(self.terminals.values())
-        self.priorities = PQDict()
-        for t in self.terminals.keys():
-            self.priorities[t] = self.terminals[t].score()
+        self.pq = pqdict.maxpq()
+        for t in self.terminals.values():
+            self.pq[t] = t.score()
 
     def extract_entities(self, input_val=None):
         res = []
@@ -293,5 +292,4 @@ class ConvoProtocol(calc_graph.CGNode):
         return resp
 
     def current_child(self):
-        dkey, _ = self.priorities.peek()
-        return self.terminals[dkey]
+        return self.pq.top()

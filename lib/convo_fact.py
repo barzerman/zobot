@@ -75,13 +75,13 @@ class ProbaValue(calc_graph.CGNodeValue):
         return self.proba_val
 
     def is_true(self):
-        return self.is_set() and self.value()
+        return self.is_set() and self.value
 
     def is_false(self):
-        return self.is_set() and not self.value()
+        return self.is_set() and not self.value
 
     def to_f(self):
-        return int(bool(self.value())) if self.is_set() else self.proba()
+        return int(bool(self.value)) if self.is_set() else self.proba()
 
 
 class AndOperator(calc_graph.CGOperator):
@@ -136,7 +136,7 @@ class ConvoFact(calc_graph.CGNode):
             return len(self.parents)
 
     def to_dict(self):
-        data = {'id': self.id, 'op': self.op.op_name, 'value': self.value.to_dict()}
+        data = {'id': self.id, 'value': self.value.to_dict()}
         if self.children:
             data['children'] = [c.to_dict() for c in self.children]
         return data

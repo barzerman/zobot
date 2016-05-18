@@ -1,0 +1,133 @@
+{
+"uid": 459,
+"beads": [
+    {
+        "type": "date", "value": "2010-10-10",
+        "src": "10/10/2010",
+        "origmarkup": "0,2;2,1;3,2;5,1;6,4"},
+    {
+        "type": "entity", "class": 459, "scope": "pager", "category": "vital", "subclass": 9, "id": "pressure", "name": "blood pressure", "rel": 0,
+        "src": "pressure",
+        "origmarkup": "11,8"},
+    {
+        "type": "timestamp", "date": "2011-11-11", "time": "11:00:00",
+        "src": "11/11/2011 11",
+        "origmarkup": "20,2;22,1;23,2;25,1;26,4;30,1;31,2"},
+    {
+        "type": "punct",
+        "value": ":",
+        "src": ":",
+        "origmarkup": "33,1"},
+    {
+        "type": "number",
+        "value": 11,
+        "src": "11",
+        "origmarkup": "34,2"},
+    {
+        "type": "erc",
+        "ent": {"class": 459, "scope": "pager", "category": "vital", "subclass": 9, "id": "temperature", "name": "temperature", "rel": 0},
+        "range": {
+            "type": "range", "rangetype": "integer", "order": "ASC", "lo": 100, "hi": 100},
+        "src": "temp 100",
+        "origmarkup": "37,4;41,1;42,3"},
+    {
+        "type": "fluff",
+        "value": "the",
+        "src": "the",
+        "origmarkup": "46,3"},
+    {
+        "type": "evr",
+        "ent": {"class": 459, "scope": "pager", "category": "vital", "subclass": 9, "id": "temperature", "name": "temperature", "rel": 0},
+        "values": [
+            {
+            "type": "entity", "class": 459, "scope": "pager", "category": "vital", "subclass": 9, "id": "pressure", "name": "blood pressure", "rel": 0}],
+        "src": "test temperature pressure",
+        "origmarkup": "50,4;54,1;55,11;66,1;67,8"},
+    {
+        "type": "token",
+        "value": "fried",
+        "src": "fried",
+        "origmarkup": "76,5"},
+    {
+        "type": "number",
+        "value": 120,
+        "src": "120",
+        "origmarkup": "82,3"},
+    {
+        "type": "token",
+        "value": "chicken",
+        "src": "chicken",
+        "origmarkup": "86,7"},
+    {
+        "type": "number",
+        "value": 10100,
+        "src": "10 100",
+        "origmarkup": "94,2;96,1;97,3"},
+	{
+        "type": "range", "rangetype": "integer", "order": "ASC", "lo": 10, "hi": 20,
+        "src": "10-20",
+        "origmarkup": "0,2;2,1;3,2"},
+	{
+        "type": "entlist",
+        "class": 459,
+        "scope": "pager",
+        "subclass": 9, "category": "vital",
+        "data": [
+            {"class": 459, "scope": "pager", "category": "vital", "subclass": 9, "id": "pressure", "name": "blood pressure", "rel": 0},
+            {"class": 459, "scope": "pager", "category": "vital", "subclass": 9, "id": "temperature", "name": "temperature", "rel": 0}],
+        "src": "pressure,temp",
+        "origmarkup": "0,8;9,4"}
+],
+"trace": [
+    {
+        "file": "0:13:C:dates",
+        "gram": 0,
+        "stmt": 143410,
+        "emit": 0},
+    {
+        "file": "0:13:C:dates",
+        "gram": 0,
+        "stmt": 143410,
+        "emit": 0},
+    {
+        "file": "0:13:C:dates",
+        "gram": 0,
+        "stmt": 143419,
+        "emit": 1},
+    {
+        "file": "459:2878:E:entities",
+        "gram": 0,
+        "stmt": 152441,
+        "emit": 2},
+    {
+        "file": "459:2878:E:entities",
+        "gram": 0,
+        "stmt": 152440,
+        "emit": 3},
+    {
+        "file": "459:2878:C:entities",
+        "gram": 0,
+        "stmt": 341760,
+        "emit": 1},
+    {
+        "file": "459:2878:E:entities",
+        "gram": 0,
+        "stmt": 152440,
+        "emit": 1},
+    {
+        "file": "459:2878:E:entities",
+        "gram": 0,
+        "stmt": 152441,
+        "emit": 2},
+    {
+        "file": "459:2878:C:entities",
+        "gram": 0,
+        "stmt": 341761,
+        "emit": 0},
+    {
+        "file": "0:8:C:fluff",
+        "gram": 1,
+        "stmt": 143490,
+        "emit": 53}],
+"query": "10/10/2010 pressure 11/11/2011 11:11 temp 100 the test temperature pressure fried 120 chicken 10 100",
+"ver": "1.05"}

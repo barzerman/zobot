@@ -6,11 +6,13 @@ import json
 from lib.barzer.barzer_svc import barzer
 from lib.barzer.barzer_objects import BeadFactory
 
+
 class BarzerConnectivityTest(unittest.TestCase):
     def test_basic(self):
         """ uncomment """
         objbarz = BeadFactory.make_beads_from_barz(barzer.get_json('hello world'))
         print >> sys.stderr, "ZZDEBUG >>>\n", '\n'.join(str(x) for x in objbarz), "<<<<<"
+
 
 class BarzerObjectsTesst(unittest.TestCase):
     def test_barz_parse(self):

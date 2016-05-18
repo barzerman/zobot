@@ -1,9 +1,15 @@
 # pylint: disable=line-too-long, missing-docstring, invalid-name, superfluous-parens
 """ core calc graph objects """
+
+
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
 
-# end of value types
+
+class CGNodeValueType(object):
+    def __init__(self, node):
+        pass
+
 
 class CGNodeValue(object):
     """ node value """
@@ -51,6 +57,7 @@ class CGNodeValue(object):
         else:
             return 'NOT SET'
 
+
 class CGChildIterator(object):
     """ basic consecutive iterator
     this can be extended to skip over filled values etc
@@ -59,18 +66,20 @@ class CGChildIterator(object):
         self.children = children
         self.pos = 0
 
-    def current(self): # pylint: disable=missing-docstring
+    def current(self):  # pylint: disable=missing-docstring
         return self.children[self.pos] if self.pos < len(self.children) else None
 
     def next(self):  # pylint: disable=missing-docstring
         self.pos += 1
         return self.current()
 
+
 class CGOperator(object):
     """ default operator is a list """
     op_name = 'LIST'
+
     @classmethod
-    def static_calc(cls, children=None, input_val=None): # pylint: disable=unused-argument
+    def static_calc(cls, children=None, input_val=None):  # pylint: disable=unused-argument
         """
         Arguments:
             children iterable(CGNode) - parent nodes, on which results of
@@ -102,6 +111,7 @@ class CGOperator(object):
     def arg_iterator(cls):
         return CGChildIterator
 
+
 class CGStepResponse(object):
     """ represents CGNode calculation step response
     may be returned from `CGNode.step`
@@ -109,6 +119,7 @@ class CGStepResponse(object):
     def __init__(self, text, beads):
         self.text = text
         self.beads = beads
+
 
 class CGNode(object):
     """ baseclass for the calc graph node """
@@ -193,6 +204,7 @@ class CGNode(object):
                     children=self.get_children(),
                     input_val=input_val
                 )
+
 
 class CG(object):
     """ calculation dag """

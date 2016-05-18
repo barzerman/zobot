@@ -129,7 +129,7 @@ class CGNode(object):
             op (CGOperator)
             val_type (CGNodeValueType)
         """
-        self.op = op
+        self.op = op or CGOperator()
         self.children = None
         self.child_iter = None
         self.value = CGOperator.init_output_val(val_type=val_type, value=value, num_children=num_children)
@@ -179,9 +179,7 @@ class CGNode(object):
         return data
 
     def op_calc(self, children, input_val):
-        return (self.op.calc(children, input_val)
-                if self.op else CGOperator.static_calc(
-                    children=children, input_val=input_val))
+        return self.op.calc(children, input_val)
 
     def step(self, input_val=None):
         """ single calculation step

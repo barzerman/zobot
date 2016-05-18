@@ -33,7 +33,7 @@ class Token(ValueBead):
     type_name = 'token'
 
     def value_str(self):
-        return "'"+str(self.value)+"'"
+        return "'{}'".format(str(self.value))
 
 class Fluff(Token):
     type_name = 'fluff'
@@ -215,7 +215,7 @@ class BeadFactory(object):
         bead_type = cls.NAME_TYPE.get(the_type)
         if bead_type:
             try:
-                return bead_type(data) if bead_type else None
+                return bead_type(data)
             except Exception as ex:
                 logging.warning('make_bead_from_dict:' + str(ex))
         else:

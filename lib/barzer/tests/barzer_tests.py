@@ -14,7 +14,7 @@ class BarzerConnectivityTest(unittest.TestCase):
         print >> sys.stderr, "ZZDEBUG >>>\n", '\n'.join(str(x) for x in objbarz), "<<<<<"
 
 
-class BarzerObjectsTesst(unittest.TestCase):
+class BarzerObjectsTest(unittest.TestCase):
     def test_barz_parse(self):
         barz = json.load(open('lib/barzer/tests/barz.json'))
         objbarz = BeadFactory.make_beads_from_barz(barz)

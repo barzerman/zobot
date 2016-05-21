@@ -4,6 +4,7 @@ from lib.barzer import barzer_objects
 from lib import calc_graph
 from lib import barzer
 
+
 class CGEntityNode(calc_graph.CGNode):
     """ """
     def __init__(self, ent, expression=None, ent_question=None, barzer_svc=None):

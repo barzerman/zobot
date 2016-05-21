@@ -14,27 +14,43 @@
 	"facts":[
 		{
 			"id": "headache",
-			"entities": ["headache"],
-			"question": "Do you have a headache?"
+			"type": "entity_fact",
+			"entity": {
+				"id": 13,
+				"subclass": 24,
+				"class": 1,
+				"name": "headache"
+			}
 		},
 		{
 			"id": "high_temperature",
-			"entities": ["temperature"],
-			"question": "Do you have high temperature?"
+			"entity": {
+				"id": 13,
+				"subclass": 24,
+				"class": 1,
+				"name": "headache"
+			}
 		},
 		{
 			"id": "bloating",
-			"entities": ["bloating"],
-			"question": "Do you have bloating?"
+			"type": "entity_fact",
+			"entity": {
+				"id": 13,
+				"subclass": 24,
+				"class": 1,
+				"name": "headache"
+			}
 		},
 		{
 			"id": "stomachache",
-			"entities": ["stomachache"],
-			"question": "Do you have stomachache?"
+			"type": "entity_fact",
+			"entity": {
+				"id": 13,
+				"subclass": 24,
+				"class": 1,
+				"name": "headache"
+			}
 		}
-	],
-	"entities":[
-		"headache", "temperature", "bloating", "stomachache"
 	],
 	"terminals": [
 		"flu", "indisgestion"

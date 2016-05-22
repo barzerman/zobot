@@ -48,10 +48,15 @@ class CgEntFact(unittest.TestCase):
             barzer_objects.Entity(
                 self.ENT_NODE_DATA['headache']
             ))
-        self.cg = calc_graph.CG(self.CG_DATA)
 
     def test_ent_node_graph(self):
-        pass
+        cg = calc_graph.CG(self.CG_DATA)
+        val, ret = cg.step()
+        self.assertFalse(val.value)
+        self.assertFalse(ret.step_occured)
+        val, ret = cg.step('got headache')
+        self.assertTrue(val.value)
+        self.assertTrue(ret.step_occured)
 
     def test_cg_ent_node_basic(self):
         """ testing standalone CGEntityNode """

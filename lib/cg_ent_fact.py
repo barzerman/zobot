@@ -40,6 +40,9 @@ class CGEntityNode(calc_graph.CGNode):
         Returns:
             text
         """
+        if self.value.is_set():
+            return 'I understand'
+
         # TODO: hook up a more advanced question generation here
         #  1. randomized "Sorry I didn't get it"
         #  2. automated and randomized entity question generation based on both

@@ -24,6 +24,12 @@ class CGNodeValue(object):
         if value is not None:
             self.set_val(value)
 
+    def __str__(self):
+        if self.is_set():
+            return str(self.value)
+        else:
+            return '<VALUE NOT SET>'
+
     def unset(self):
         """ unset value """
         if hasattr(self, 'val_'):
@@ -124,6 +130,13 @@ class CGStepResponse(object):
         self.text = text
         self.beads = beads
         self.step_occured = step_occured
+
+    def __str__(self):
+        return 'text={} beads={} step_occured={}'.format(
+            self.text,
+            self.beads,
+            self.step_occured
+        )
 
     def __nonzero__(self):
         return bool(self.step_occured)
@@ -237,8 +250,9 @@ class CGNode(object):
                 else:
                     ret = current_child.step(input_val=input_val)
                     if not current_child.is_set():
-                        ret.step_occured = True
                         return ret
+                    else:
+                        ret.step_occured = True
 
             if not current_child:
                 self.value = self.op_calc(

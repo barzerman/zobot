@@ -1,7 +1,8 @@
+# pylint: disable=invalid-name, missing-docstring
 import unittest
+import pprint
 import json
 from lib import calc_graph, convo_fact
-import pprint
 
 pp = pprint.PrettyPrinter()
 
@@ -20,8 +21,8 @@ class ConvoFactTestCase(unittest.TestCase):
         # pp.pprint(cg.root.to_dict())
         cg.root.update_facts([cg.root.entities['stomachache']])
         # pp.pprint(cg.root.to_dict())
-        (val, txt) = cg.step()
-        self.assertTrue('indisgestion' in txt)
+        (_, txt) = cg.step()
+        self.assertTrue('indisgestion' in txt.text)
 
     def test_indisgestion(self):
         data = json.load(open('lib/tests/test.json'))
@@ -31,9 +32,9 @@ class ConvoFactTestCase(unittest.TestCase):
         cg.root = convo_protocol
         print cg.step()
         print cg.step('Yes, I have bloating')
-        val, txt = cg.step('Yes, I have stomachache')
+        _, txt = cg.step('Yes, I have stomachache')
         print txt
-        self.assertTrue('You have indisgestion' in txt)
+        self.assertTrue('You have indisgestion' in txt.text)
 
     def test_flu(self):
         data = json.load(open('lib/tests/test.json'))
@@ -45,8 +46,8 @@ class ConvoFactTestCase(unittest.TestCase):
         print cg.step('No, I do not have bloating')
         pp.pprint(cg.root.to_dict())
         print cg.step('I have a headache')
-        val, txt = cg.step('I have high temperature')
-        self.assertTrue("flu" in txt)
+        _, txt = cg.step('I have high temperature')
+        self.assertTrue("flu" in txt.text)
 
 
 if __name__ == '__main__':

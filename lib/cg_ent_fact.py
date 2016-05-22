@@ -1,27 +1,67 @@
-# pylint: disable=empty-docstring
+# pylint: disable=empty-docstring, invalid-name, missing-docstring
 """ simple entity based fact node implementation """
+from functools import partial
 from lib.barzer import barzer_objects
 from lib import calc_graph
 from lib import barzer
 
 
+class CompareExpression(object):
+    """ arithmetic entity value expression """
+    router = {
+        '=': lambda values, x: x == values,
+        '<': lambda values, x: x < values,
+        '>': lambda values, x: x > values,
+        '<=': lambda values, x: x <= values,
+        '>=': lambda values, x: x >= values,
+        '!=': lambda values, x: x != values,
+        'in': lambda values, x: any(x == _ for _ in values),
+        'out': lambda values, x: not any(x == _ for _ in values),
+        '<>': lambda values, x: x >= values[0] and x <= values[1],
+        '><': lambda values, x: x < values[0] or x > values[1],
+    }
+
+    def __call__(self, x):
+        val = x
+        if isinstance(x, (list, tuple)):
+            for v in x:
+                if v is not None:
+                    val = v
+                    break
+        return self.func(val)
+
+    def __init__(self, data):
+        self.func = partial(
+            self.router[data.get('op', '=')], data.get('values'))
+
+
 class CGEntityNode(calc_graph.CGNode):
     """ """
-    def __init__(self, ent, expression=None, ent_question=None, barzer_svc=None):
+    node_type_id = 'entity'
+
+    def __init__(self, data, expression=None, ent_question=None, barzer_svc=None):
         """
         Arguments:
-            ent (barzer.Entity)
+            ent (barzer.Entity|dict) - dict is passed to the Entity
+                constructor
             expression (arithmetic expression over value)
         """
         super(CGEntityNode, self).__init__()
-        self.ent = ent
+        entity_type = barzer_objects.Entity
+        self.ent = data if isinstance(data, entity_type) else entity_type(data)
         # TODO: add negative entity here - mathcing a negative entity should
         #       be interpreted as value False
         # when this gets filled step will complete
         self.ent_value = None
         self.confidence = 0
 
-        self.expression = expression
+        if expression:
+            self.expression = expression
+        elif isinstance(data, dict) and 'expression' in data:
+            self.expression = CompareExpression(data['expression'])
+        else:
+            self.expression = None
+
         self.ent_question = ent_question
         self.barzer_svc = barzer_svc or barzer.barzer_svc.barzer
 
@@ -38,6 +78,9 @@ class CGEntityNode(calc_graph.CGNode):
         Returns:
             text
         """
+        if self.value.is_set():
+            return 'I understand'
+
         # TODO: hook up a more advanced question generation here
         #  1. randomized "Sorry I didn't get it"
         #  2. automated and randomized entity question generation based on both
@@ -64,7 +107,12 @@ class CGEntityNode(calc_graph.CGNode):
             return False
 
     def analyze_beads(self, beads):
-        """ analyzes beads. if applicable tries to fill value """
+        """ analyzes beads. if applicable tries to fill value
+        Args:
+            beads list(Beads)
+        Returns:
+            bool(if computation could be completed)
+        """
         for bead in beads:
             if isinstance(bead, (barzer_objects.EntityBase)):
                 if bead.match_ent(self.ent):
@@ -72,18 +120,17 @@ class CGEntityNode(calc_graph.CGNode):
                     if not self.expression:
                         self.ent_value, self.confidence = True, 1.0
                     elif isinstance(bead, barzer_objects.ERC):
-                        self.ent_value = self.expression(
-                            bead.range.get_as_type_pair())
+                        self.ent_value = bead.range.get_as_type_pair()
                         self.confidence = 1.0
                     elif isinstance(bead, barzer_objects.EVR):
-                        self.ent_value = self.expression(
-                            [x for x in bead.iterate_type((
-                                barzer_objects.Range,
-                                barzer_objects.Number))])
+                        self.ent_value = [x for x in bead.iterate_type((
+                            barzer_objects.Range,
+                            barzer_objects.Number))]
                         self.confidence = 1.0
                     else:
                         continue
                     return self.compute_expression()
+        return False
 
     def step(self, input_val=None):
         """ """
@@ -96,10 +143,13 @@ class CGEntityNode(calc_graph.CGNode):
             if input_val:
                 beads = barzer_objects.BeadFactory.make_beads_from_barz(
                     self.barzer_svc.get_json(input_val))
-                if not self.analyze_beads(beads):
-                    return calc_graph.CGStepResponse(
-                        text=self.get_question(beads),
-                        beads=beads
-                    )
+                calc_completed = self.analyze_beads(beads)
+                return calc_graph.CGStepResponse(
+                    text=self.get_question(beads),
+                    beads=beads,
+                    step_occured=calc_completed
+                )
             else:
-                return self.get_question()
+                return calc_graph.CGStepResponse(
+                    text=self.get_question()
+                )

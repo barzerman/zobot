@@ -14,12 +14,12 @@ class CalcGraphTestCase(unittest.TestCase):
 
     def test_basic(self):
         cg = calc_graph.CG(self.CG_DATA)
-        n = calc_graph.CGNode()
+        calc_graph.CGNode()
         self.assertFalse(cg.value.is_set())
         cgdict = cg.root.to_dict()
         self.assertEquals(len(cgdict['children']), len(self.CG_DATA))
         # computational step
-        val, response = cg.step()
+        cg.step()
         self.assertTrue(cg.value.value)
 
 

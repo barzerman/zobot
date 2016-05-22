@@ -86,6 +86,7 @@ class ConvoFact(calc_graph.CGNode):
         self.value = False
         self.confidence = 0
         self.id = fact.id
+        self.question = fact.question
         self.parents = set(parents or [])
         self.protocol = protocol
 
@@ -152,6 +153,9 @@ class ConvoEntityFact(ConvoFact):
             self.ent.analyze_beads(beads)
             self.update(value=self.ent.value, confidence=self.ent.confidence)
 
+        def analyze_input(self, input_val):
+            return self.analyze_beads(self.barzer_svc.get_beads(input_val))
+
         def score(self):
             if self.value.is_set():
                 return 0
@@ -214,10 +218,12 @@ class ConvoProtocol(calc_graph.CGNode):
         EntityFact: ConvoEntityFact
     }
 
-    def __init__(self, protocol, barzer_svc=None):
+    def __init__(self, data, barzer_svc=None):
+        protocol = Protocol(data)
+
         super(ConvoProtocol, self).__init__()
         self.terminals = {}
-        self.facts_ = {}
+        self.facts_ = defaultdict(set)
         self.barzer_svc = barzer_svc or barzer.barzer_svc.barzer
 
         self.visited_facts = set()
@@ -231,13 +237,6 @@ class ConvoProtocol(calc_graph.CGNode):
         for t in self.terminals.values():
             self.pq[t] = t.score()
 
-    def extract_entities(self, input_val=None):  # TODO
-        res = []
-        for token in input_val.split():
-            if token in self.entities:
-                res.append(self.entities[token])
-        return res
-
     def create_or_update_fact(self, protocol, f, parents):
         if f.id in self.facts_:
             self.facts_[f.id].add_parents(parents)
@@ -245,6 +244,7 @@ class ConvoProtocol(calc_graph.CGNode):
             _type = self.FACT_MAP.get(f)
             if _type:
                 self.facts[f.id] = _type(protocol, f, parents)
+                self.facts[_type].add(f)
 
         return self.facts_[f.id]
 
@@ -261,10 +261,8 @@ class ConvoProtocol(calc_graph.CGNode):
 
     def step(self, input_val=None):
         if input_val:
-            beads = barzer_objects.BeadFactory.make_beads_from_barz(self.barzer_svc.get_json(input_val))
-            for f in self.facts.values():
-                if isinstance(f, ConvoEntityFact):
-                    f.analyze_beads(beads)
+            for f in self.facts_[ConvoEntityFact]:
+                f.analyze_input(input_val)
 
         resp = self.current_child().step(input_val)
 

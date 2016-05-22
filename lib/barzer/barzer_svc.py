@@ -3,6 +3,8 @@ from __future__ import absolute_import, division
 import urllib
 import json
 import logging
+from pylru import lrudecorator
+import barzer_objects
 
 from config import BarzerSettings
 
@@ -13,7 +15,7 @@ class BarzerError(Exception):
 
 class Barzer(object):
     """ entity extraction layer """
-    def __init__(self):
+    def __init__(self, cache_size=10):
         def make_instance_url(url, key):
             return '{}?key={}'.format(url, key)
 
@@ -44,5 +46,10 @@ class Barzer(object):
             return {'error': 'request {} failed with error: {}'.format(url,
                                                                        str(ex))}
         return json.loads(response.read())
+
+    @lrudecorator(100)
+    def get_beads(self, query, instance=None):
+        data = self.get_json_cached(query, instance)
+        return barzer_objects.BeadFactory.make_beads_from_barz(data)
 
 barzer = Barzer()

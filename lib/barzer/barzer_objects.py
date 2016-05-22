@@ -164,6 +164,16 @@ class ERC(EntityBase):
     def ent_id(self):
         return self.ent.ent_id()
 
+    @property
+    def eclass(self):
+        return self.ent.eclass
+    @property
+    def subclass(self):
+        return self.ent.subclass
+    @property
+    def id(self):
+        return self.ent.id
+
 class Time(ValueBead):
     type_name = "time"
     """ time of day """

@@ -32,25 +32,44 @@ class CgEntFact(unittest.TestCase):
             'name': 'Headache'
         }
     }
-    CG_DATA = [
-        {
-            'node_type': 'entity',
-            'data': {
-                'class': 459,
-                'subclass': 3,
-                'id': 'HEADACHE',
-                'name': 'Headache'
-            }
-        }
-    ]
     def setUp(self):
         self.ent_node = cg_ent_fact.CGEntityNode(
             barzer_objects.Entity(
                 self.ENT_NODE_DATA['headache']
             ))
 
+    def test_ent_expression(self):
+        cg = calc_graph.CG([
+            {
+                'node_type': 'entity',
+                'data': {
+                    'class': 459,
+                    'subclass': 9,
+                    'id': 'temperature',
+                    'name': 'Headache',
+                    'expression': {'op': '>', 'values': 100}
+                }
+            }
+        ])
+        val, ret = cg.step()
+        self.assertFalse(val.value)
+        self.assertFalse(ret.step_occured)
+        val, ret = cg.step('temprerature 99')
+        self.assertTrue(ret.step_occured)
+        self.assertFalse(val.value)
+
     def test_ent_node_graph(self):
-        cg = calc_graph.CG(self.CG_DATA)
+        cg = calc_graph.CG([
+            {
+                'node_type': 'entity',
+                'data': {
+                    'class': 459,
+                    'subclass': 3,
+                    'id': 'HEADACHE',
+                    'name': 'Headache'
+                }
+            }
+        ])
         val, ret = cg.step()
         self.assertFalse(val.value)
         self.assertFalse(ret.step_occured)

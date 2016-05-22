@@ -24,21 +24,45 @@ class CalcGraphTestCase(unittest.TestCase):
 
 
 class CgEntFact(unittest.TestCase):
-    def test_cg_ent_node_basic(self):
-        objbarz = barzer_objects.BeadFactory.make_beads_from_barz(
-            barzer.get_json('headache'))
-        print >> sys.stderr, "DEBUG >>>", objbarz, "<<<"
-        node = cg_ent_fact.CGEntityNode(
+    ENT_NODE_DATA = {
+        'headache': {
+            'class': 459,
+            'subclass': 3,
+            'id': 'HEADACHE',
+            'name': 'Headache'
+        }
+    }
+    CG_DATA = [
+        {
+            'node_type': 'entity',
+            'data': {
+                'class': 459,
+                'subclass': 3,
+                'id': 'HEADACHE',
+                'name': 'Headache'
+            }
+        }
+    ]
+    def setUp(self):
+        self.ent_node = cg_ent_fact.CGEntityNode(
             barzer_objects.Entity(
-                {
-                    'class': 459,
-                    'subclass': 3,
-                    'id': 'HEADACHE',
-                    'name': 'Headache'
-                }))
+                self.ENT_NODE_DATA['headache']
+            ))
+        self.cg = calc_graph.CG(self.CG_DATA)
 
-        node.step()
+    def test_ent_node_graph(self):
+        pass
 
+    def test_cg_ent_node_basic(self):
+        """ testing standalone CGEntityNode """
+        self.assertFalse(self.ent_node.is_set())
+        step_ret = self.ent_node.step('heart ache')
+        print >> sys.stderr, "DEBUG >>>", bool(step_ret), "<<<"
+        self.assertFalse(self.ent_node.is_set())
+        step_ret = self.ent_node.step('i have a headache')
+        print >> sys.stderr, "DEBUG >>>", 'step occured={}'.format(bool(step_ret)), "<<<"
+        self.assertTrue(self.ent_node.is_set())
+        print >> sys.stderr, "DEBUG >>>", self.ent_node.value.value, "<<<"
 
 if __name__ == '__main__':
     unittest.main()

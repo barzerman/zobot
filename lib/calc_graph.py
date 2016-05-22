@@ -1,7 +1,6 @@
 # pylint: disable=line-too-long, missing-docstring, invalid-name, superfluous-parens
 """ core calc graph objects """
 
-
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
 
@@ -99,12 +98,12 @@ class CGOperator(object):
         self.static_calc(children=children, input_val=input_val)
 
     @classmethod
-    def init_output_val(cls, val_type, value=None, num_children=None):
+    def init_output_val(cls, val_type, value=None, is_array=False):
         """ initializes `value` as operator's output given number of children """
         return CGNodeValue(
             value=value,
             val_type=val_type,
-            is_array=num_children and num_children > 0
+            is_array=is_array
         )
 
     @classmethod
@@ -116,33 +115,72 @@ class CGStepResponse(object):
     """ represents CGNode calculation step response
     may be returned from `CGNode.step`
     """
-    def __init__(self, text, beads):
+    def __init__(self, step_occured=False, text=None, beads=None):
+        """
+        Args:
+            text (str) - textual response from the bot for the next step
+            beads (list(lib.barzer.barzer_objects.Bead)) - barz response
+        """
         self.text = text
         self.beads = beads
+        self.step_occured = step_occured
 
+    def __nonzero__(self):
+        return bool(self.step_occured)
+
+class CGNodeMeta(type):
+    """ CGNode metaclass
+    children of CGNode can later on be located by
+    their `node_type_id` field, or, in case it's
+    not defined by lower case type name
+    """
+    def __init__(cls, name, bases, dct):
+        if not hasattr(cls, 'node_type_registry'):
+            cls.node_type_registry = dict()
+        else:
+            cls.node_type_registry[
+                getattr(cls, 'node_type_id', name.lower())
+            ] = cls
+        super(CGNodeMeta, cls).__init__(name, bases, dct)
 
 class CGNode(object):
+    __metaclass__ = CGNodeMeta
     """ baseclass for the calc graph node """
-    def __init__(self, op=None, val_type=None, value=None, num_children=None):
+    def __init__(
+            self,
+            op=None,
+            val_type=None,
+            value=None,
+            children=None,
+            is_array=False
+    ):
         """
         Arguments:
             op (CGOperator)
             val_type (CGNodeValueType)
         """
         self.op = op
-        self.children = None
-        self.child_iter = None
-        self.value = CGOperator.init_output_val(val_type=val_type, value=value, num_children=num_children)
+        self.children = self.value = None
+        self.value = CGOperator.init_output_val(
+            val_type=val_type,
+            value=value,
+            is_array=children and len(children) > 1 or is_array
+        )
+        if children:
+            self.set_children(children)
+
+    @classmethod
+    def get_class_by_node_type_id(cls, node_type_id):
+        if not node_type_id:
+            return CGNode
+        else:
+            return cls.node_type_registry.get(  # pylint: disable=no-member
+                node_type_id, CGNode if node_type_id else None
+            )
 
     def set_children(self, children):
-        if not children:
-            self.children = None
-            self.child_iter = None
-            return self.children
-
         self.children = children
         self.child_iter = CGOperator.arg_iterator()(self.children)
-
         return self.children
 
     def get_children(self):
@@ -188,8 +226,9 @@ class CGNode(object):
         """ single calculation step
         tries to calculate next unfinished node
         Returns:
-            CGStepResponse or None if no step occured
+            CGStepResponse
         """
+        ret = CGStepResponse()
         if not self.is_set():
             current_child = self.current_child()
             while current_child:
@@ -198,6 +237,7 @@ class CGNode(object):
                 else:
                     ret = current_child.step(input_val=input_val)
                     if not current_child.is_set():
+                        ret.step_occured = True
                         return ret
 
             if not current_child:
@@ -206,6 +246,7 @@ class CGNode(object):
                     input_val=input_val
                 )
 
+        return ret
 
 class CG(object):
     """ calculation dag """
@@ -216,17 +257,25 @@ class CG(object):
         self.root = CGNode()
         self.init_from_data(data, self.root)
 
-    def init_from_data(self, data, node):
+    def init_from_data(self, data, node, list_node_type=CGNode):
         if isinstance(data, (list, set, frozenset)):
             for d in data:
-                return node.set_children([self.init_from_data(d, CGNode()) for d in data])
+                return node.set_children(
+                    [self.init_from_data(d, list_node_type()) for d in data]
+                )
         elif isinstance(data, dict):
+            node_type = CGNode.get_class_by_node_type_id(
+                data.get('node_type')
+            )
             the_id = data.get('id')
-            val_type = data.get('type')
-            op = data.get('op')
-            value = data.get('value')
+            if 'data' in data:
+                n = node_type(data['data'])
+            else:
+                val_type = data.get('type')
+                op = data.get('op')
+                value = data.get('value')
+                n = node_type(op, val_type, value)
 
-            n = CGNode(op, val_type, value)
             if the_id is not None:
                 self.nodes[the_id] = n
 

@@ -1,9 +1,9 @@
 # pylint: disable=missing-docstring, invalid-name, trailing-whitespace, line-too-long
 from collections import defaultdict, deque
-import pqdict
-from lib import calc_graph
 from toposort import toposort
+import pqdict
 
+from lib import calc_graph
 
 class Fact(object):
     def __init__(self, data):
@@ -115,7 +115,10 @@ class ConvoFact(calc_graph.CGNode):
             protocol.entity_fact_index[ent].add(self)
 
     def step(self, input_val=None):
-        return self.question
+        return calc_graph.CGStepResponse(
+            text=self.question
+        )
+
 
     def remove_parent(self, _id):
         if _id in self.parents:
@@ -279,7 +282,9 @@ class ConvoProtocol(calc_graph.CGNode):
         for _id, t in self.terminals.items():
             print _id, t.value.is_true()
             if t.value.is_true():
-                return "You have " + _id
+                return calc_graph.CGStepResponse(
+                    text="You have " + _id
+                )
 
         return resp
 

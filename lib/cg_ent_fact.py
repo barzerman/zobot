@@ -6,14 +6,17 @@ from lib import barzer
 
 class CGEntityNode(calc_graph.CGNode):
     """ """
+    node_type_id = 'entity'
     def __init__(self, ent, expression=None, ent_question=None, barzer_svc=None):
         """
         Arguments:
-            ent (barzer.Entity)
+            ent (barzer.Entity|dict) - dict is passed to the Entity
+                constructor
             expression (arithmetic expression over value)
         """
         super(CGEntityNode, self).__init__()
-        self.ent = ent
+        entity_type = barzer_objects.Entity
+        self.ent = ent if isinstance(ent, entity_type) else entity_type(ent)
         # TODO: add negative entity here - mathcing a negative entity should
         #       be interpreted as value False
         # when this gets filled step will complete
@@ -63,7 +66,12 @@ class CGEntityNode(calc_graph.CGNode):
             return False
 
     def analyze_beads(self, beads):
-        """ analyzes beads. if applicable tries to fill value """
+        """ analyzes beads. if applicable tries to fill value
+        Args:
+            beads list(Beads)
+        Returns:
+            bool(if computation could be completed)
+        """
         for bead in beads:
             if isinstance(bead, (barzer_objects.EntityBase)):
                 if bead.match_ent(self.ent):
@@ -83,6 +91,7 @@ class CGEntityNode(calc_graph.CGNode):
                     else:
                         continue
                     return self.compute_expression()
+        return False
 
     def step(self, input_val=None):
         """ """
@@ -95,10 +104,13 @@ class CGEntityNode(calc_graph.CGNode):
             if input_val:
                 beads = barzer_objects.BeadFactory.make_beads_from_barz(
                     self.barzer_svc.get_json(input_val))
-                if not self.analyze_beads(beads):
-                    return calc_graph.CGStepResponse(
-                        text=self.get_question(beads),
-                        beads=beads
-                    )
+                calc_completed = self.analyze_beads(beads)
+                return calc_graph.CGStepResponse(
+                    text=self.get_question(beads),
+                    beads=beads,
+                    step_occured=calc_completed
+                )
             else:
-                return self.get_question()
+                return calc_graph.CGStepResponse(
+                    text=self.get_question()
+                )

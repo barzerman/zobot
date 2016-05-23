@@ -49,7 +49,7 @@ class Barzer(object):
 
     @lrudecorator(100)
     def get_beads(self, query, instance=None):
-        data = self.get_json_cached(query, instance)
+        data = self.get_json(query, instance)
         return barzer_objects.BeadFactory.make_beads_from_barz(data)
 
 barzer = Barzer()

@@ -12,10 +12,15 @@ class ConvoFactTestCase(unittest.TestCase):
     def test_basic(self):
         data = json.load(open('lib/tests/test.json'))
         convo_protocol = convo_fact.ConvoProtocol(data)
-        # cg = calc_graph.CG()
-        # cg.root = convo_protocol
+        cg = calc_graph.CG()
+        cg.root = convo_protocol
 
-        # # pp.pprint(cg.root.to_dict())
+        pp.pprint(cg.root.to_dict())
+
+        cg.step('I have temperature 38')
+        pp.pprint(cg.root.to_dict())
+        cg.step('I have a headache')
+        pp.pprint(cg.root.to_dict())
         # cg.root.update_facts([cg.root.entities['bloating']])
         # # pp.pprint(cg.root.to_dict())
         # cg.root.update_facts([cg.root.entities['stomachache']])

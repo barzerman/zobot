@@ -143,7 +143,7 @@ class CGEntityNode(calc_graph.CGNode):
             if input_val:
                 beads = barzer_objects.BeadFactory.make_beads_from_barz(
                     self.barzer_svc.get_json(input_val))
-                calc_completed = self.analyze_input(input_val)
+                calc_completed = self.analyze_beads(beads)
                 return calc_graph.CGStepResponse(
                     text=self.get_question(beads),
                     beads=beads,

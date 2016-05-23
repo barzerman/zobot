@@ -25,43 +25,40 @@
 		{
 			"id": "high_temperature",
 			"node_type": "entity",
-			"expression": {
-				"op": ">",
-				"values": 37
-			},
 			"entity": {
 				"id": "temperature",
 				"subclass": 9,
 				"class": 459,
-				"name": "temperature"
+				"name": "temperature",
+				"expression": {
+					"op": ">", "values": 37
+				}
 			}
 		},
 		{
 			"id": "low_temperature",
 			"node_type": "entity",
-			"expression": {
-				"op": "<",
-				"values": 35
-			},
 			"entity": {
 				"id": "temperature",
 				"subclass": 9,
 				"class": 459,
-				"name": "temperature"
+				"name": "temperature",
+				"expression": {
+					"op": "<", "values": 35
+				}
 			}
 		},
 		{
 			"id": "low_pressure",
 			"node_type": "entity",
-			"expression": {
-				"op": "<",
-				"values": 110
-			},
 			"entity": {
 				"id": "pressure",
 				"subclass": 9,
 				"class": 459,
-				"name": "blood pressure"
+				"name": "blood pressure",
+				"expression": {
+					"op": "<", "values": 110
+				}
 			}
 		}
 	],

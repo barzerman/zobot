@@ -52,6 +52,12 @@ class CGNodeValue(object):
         setattr(self, 'val_', val)
         return self
 
+    def equal(self, another_cg_value):
+        if self.is_set() and another_cg_value.is_set():
+            return self.val_ == another_cg_value.val_
+        else:
+            return False
+
     @property
     def value(self):
         """ value if set, exception otherwise """

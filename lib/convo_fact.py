@@ -25,6 +25,7 @@ class CompositeFact(Fact):
     def __init__(self, data, protocol=None):
         super(CompositeFact, self).__init__(data, protocol)
         self.operator = data['operator']
+        self.text = data['text']
         if protocol:
             self.facts = [protocol.facts[fact_id] for fact_id in data['facts'] if fact_id in protocol.facts]
 
@@ -176,6 +177,7 @@ class ConvoCompositeFact(ConvoFact):
 
     def __init__(self, protocol, fact, parents=None, barzer_svc=None):
         super(ConvoCompositeFact, self).__init__(protocol, fact, parents, barzer_svc=barzer_svc)
+        self.text = fact.text
 
         op = self.OPERATOR_MAP.get(fact.operator)
         if op:
@@ -277,7 +279,7 @@ class ConvoProtocol(calc_graph.CGNode):
         for _id, t in self.terminals.items():
             if t.value.is_true():
                 return calc_graph.CGStepResponse(
-                    text="You have " + _id
+                    text=t.text
                 )
 
         return resp

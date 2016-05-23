@@ -4,13 +4,15 @@
 			"id": "flu",
 			"operator": "AND",
 			"node_type": "composite",
-			"facts": ["high_temperature", "headache"]
+			"facts": ["high_temperature", "headache"],
+			"text": "You have a flu. Please visit your doctor"
 		},
 		{
 			"id": "911",
 			"operator": "AND",
 			"node_type": "composite",
-			"facts": ["low_pressure", "low_temperature"]
+			"facts": ["pressure", "low_temperature"],
+			"text": "Please call 911"
 		},
 		{
 			"id": "headache",
@@ -49,16 +51,13 @@
 			}
 		},
 		{
-			"id": "low_pressure",
+			"id": "pressure",
 			"node_type": "entity",
 			"entity": {
 				"id": "pressure",
 				"subclass": 9,
 				"class": 459,
-				"name": "blood pressure",
-				"expression": {
-					"op": "<", "values": 110
-				}
+				"name": "blood pressure"
 			}
 		}
 	],

@@ -2,7 +2,6 @@
 from collections import defaultdict, deque
 from toposort import toposort
 from lib import cg_ent_fact
-from lib.barzer import barzer_objects
 from lib.barzer.barzer_svc import barzer as default_barzer_instance
 import pqdict
 from lib import calc_graph
@@ -11,7 +10,7 @@ from lib import calc_graph
 class Fact(object):
     def __init__(self, data, protocol=None):
         self.id = data['id']
-        self.question = ''
+        self.question = data.get('question')
 
 
 class EntityFact(Fact):
@@ -24,8 +23,7 @@ class EntityFact(Fact):
 
 class CompositeFact(Fact):
     def __init__(self, data, protocol=None):
-        self.id = data['id']
-        self.question = ''
+        super(CompositeFact, self).__init__(data, protocol)
         self.operator = data['operator']
         if protocol:
             self.facts = [protocol.facts[fact_id] for fact_id in data['facts'] if fact_id in protocol.facts]
@@ -153,6 +151,9 @@ class ConvoEntityFact(ConvoFact):
         self.update(value=self.ent.value, confidence=self.ent.confidence)
         return resp
 
+    def get_question(self):
+        return self.ent.get_question()
+
     def analyze_beads(self, beads):
         self.ent.analyze_beads(beads)
         self.update(value=self.ent.value, confidence=self.ent.confidence)
@@ -200,7 +201,10 @@ class ConvoCompositeFact(ConvoFact):
 
     def update(self):
         value = self.op.calc(children=self.get_children())
-        confidence = self.op.confidence(children=self.get_children())
+        if value.is_set():
+            confidence = 1.0
+        else:
+            confidence = self.op.confidence(children=self.get_children())
         super(ConvoCompositeFact, self).update(value, confidence)
 
     def score(self):
@@ -208,6 +212,9 @@ class ConvoCompositeFact(ConvoFact):
             return 0
         else:
             return self.confidence
+
+    def step(self, input_val=None):
+        return self.current_child().step(input_val)
 
 
 class ConvoProtocol(calc_graph.CGNode):
@@ -218,6 +225,7 @@ class ConvoProtocol(calc_graph.CGNode):
 
     def __init__(self, data, barzer_svc=None):
         protocol = Protocol(data)
+        self.id = 'protocol'
 
         super(ConvoProtocol, self).__init__()
         self.terminals = {}
@@ -228,7 +236,7 @@ class ConvoProtocol(calc_graph.CGNode):
         self.facts_to_update = deque()
 
         for t in protocol.terminals:
-            self.facts[t.id] = self.terminals[t.id] = ConvoCompositeFact(protocol=self, fact=t, parents=[])
+            self.facts[t.id] = self.terminals[t.id] = ConvoCompositeFact(protocol=self, fact=t, parents=[self])
 
         self.set_children(self.terminals.values())
         self.pq = pqdict.maxpq()
@@ -254,20 +262,19 @@ class ConvoProtocol(calc_graph.CGNode):
     def update_facts(self):
         while len(self.facts_to_update) > 0:
             f = self.facts_to_update.popleft()
-            f.update()
+            if not f.id == self.id:
+                f.update()
         self.visited_facts = set()
 
     def step(self, input_val=None):
         if input_val:
             for f in self.facts[ConvoEntityFact]:
-                print f
                 f.analyze_input(input_val)
         self.update_facts()
 
-        resp = self.current_child().step(input_val)
+        resp = self.current_child().step()
 
         for _id, t in self.terminals.items():
-            print _id, t.value.is_true()
             if t.value.is_true():
                 return calc_graph.CGStepResponse(
                     text="You have " + _id

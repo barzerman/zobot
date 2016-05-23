@@ -53,7 +53,7 @@ class CGEntityNode(calc_graph.CGNode):
         #       be interpreted as value False
         # when this gets filled step will complete
         self.ent_value = None
-        self.confidence = 0
+        self.confidence = 0.5
 
         if expression:
             self.expression = expression
@@ -88,7 +88,10 @@ class CGEntityNode(calc_graph.CGNode):
         if self.ent_question:
             basic_question = self.ent_question
         else:
-            basic_question = self.ent.name + '?'
+            if self.expression:
+                basic_question = 'What is your ' + self.ent.name + '?'
+            else:
+                basic_question = 'Do you have a ' + self.ent.name + '?'
 
         if beads:
             return 'Sorry I didn\'t get that. ' + basic_question

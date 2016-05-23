@@ -35,6 +35,12 @@ class CGNodeValue(object):
         if hasattr(self, 'val_'):
             delattr(self, 'val_')
 
+    def is_true(self):
+        return self.is_set() and self.val_ is True
+
+    def is_false(self):
+        return self.is_set() and self.val_ is False
+
     def is_set(self):
         """ when true it's safe to get value by calling `value`"""
         return hasattr(self, 'val_')

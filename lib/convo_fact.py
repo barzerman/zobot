@@ -2,68 +2,72 @@
 from collections import defaultdict, deque
 from toposort import toposort
 from lib import cg_ent_fact
-from lib import barzer_objects
-from lib import barzer
+from lib.barzer import barzer_objects
+from lib.barzer.barzer_svc import barzer as default_barzer_instance
 import pqdict
 from lib import calc_graph
 
 
 class Fact(object):
-    def __init__(self, data):
+    def __init__(self, data, protocol=None):
         self.id = data['id']
+        self.question = ''
 
 
 class EntityFact(Fact):
-    def __init__(self, data):
+    def __init__(self, data, protocol=None):
         super(EntityFact, self).__init__(data)
         self.entity = barzer_objects.Entity(data['entity'])
         self.question = data.get('question')
         self.expression = data.get('expression')
 
 
-class CompositeFact(object):
-    def __init__(self, protocol, data):
+class CompositeFact(Fact):
+    def __init__(self, data, protocol=None):
         self.id = data['id']
+        self.question = ''
         self.operator = data['operator']
-        self.facts = [protocol.facts[fact_id] for fact_id in data['facts'] if fact_id in protocol.facts]
+        if protocol:
+            self.facts = [protocol.facts[fact_id] for fact_id in data['facts'] if fact_id in protocol.facts]
 
 
 class Protocol(object):
     FACT_MAP = { 
-        'entity_fact': EntityFact
+        'entity': EntityFact,
+        'composite': CompositeFact,
+        None: Fact
     }
 
     def __init__(self, data):
         self.facts = {}
-        self.terminals = []
 
-        for fact in data['facts']:
-            f = self.FACT_MAP.get(fact['type'])
-            if f:
-                self.facts[fact['id']] = f(fact)
-
-        # topologically sorting composite facts 
+        # topologically sorting facts 
         G = defaultdict(set)
-        composite_facts = {}
-        for composite_fact in data['composite_facts']:
-            composite_facts[composite_fact['id']] = composite_fact
-
-            for fact_id in composite_fact['facts']:
-                G[fact_id].add(composite_fact['id'])
+        for fact in data['facts']:
+            self.facts[fact['id']] = fact
+            if fact.get('facts'):
+                for dependant_fact_id in fact['facts']:
+                    G[fact['id']].add(dependant_fact_id)
 
         for facts_of_equal_priority in toposort(G):
-            for _id in facts_of_equal_priority:
-                if _id not in self.facts:
-                    self.facts[_id] = CompositeFact(self, composite_facts[_id])
+            for fact_id in facts_of_equal_priority:
+                fact = self.facts[fact_id]
+                _type = self.FACT_MAP.get(fact.get('node_type'))
+                self.facts[fact_id] = _type(fact, protocol=self)
 
-        self.terminals = [self.facts[t] for t in data['terminals']]
+        self.terminals = set(self.facts[t] for t in data['terminals'])
 
 
 class AndOperator(calc_graph.CGOperator):
     op_name = 'AND'
 
     def calc(self, children=None, input_val=None):
-        return all([ch.value for ch in children])
+        value = calc_graph.CGNodeValue()
+        if all([ch.value.is_true() for ch in children]):
+            value.set_val(True)
+        elif any([ch.value.is_false] for ch in children):
+            value.set_val(False)
+        return value
 
     def confidence(self, children=None):
         return reduce(lambda x, y: x * y, [c.confidence for c in children])
@@ -73,7 +77,12 @@ class OrOperator(calc_graph.CGOperator):
     op_name = 'OR'
 
     def calc(self, children=None, input_val=None):
-        return any([ch.value for ch in children])
+        value = calc_graph.CGNodeValue()
+        if any([ch.value.is_true() for ch in children]):
+            value.set_val(True)
+        elif all([ch.value.is_false() for ch in children]):
+            value.set_val(False)
+        return value
 
     def confidence(self, children=None):
         return max([ch.confidence for ch in children])
@@ -83,7 +92,6 @@ class ConvoFact(calc_graph.CGNode):
 
     def __init__(self, protocol, fact, parents=None, barzer_svc=None):
         super(ConvoFact, self).__init__()
-        self.value = False
         self.confidence = 0
         self.id = fact.id
         self.question = fact.question
@@ -141,8 +149,8 @@ class ConvoFact(calc_graph.CGNode):
 
 class ConvoEntityFact(ConvoFact):
     def __init__(self, protocol, fact, parents=None, barzer_svc=None):
-        super(ConvoEntityFact).__init__(protocol, fact, parents, barzer_svc)
-        self.ent = cg_ent_fact.CGEntityNode(ent=fact.entity, expression=fact.expression, ent_question=fact.question, barzer_svc=self.barzer_svc)
+        super(ConvoEntityFact, self).__init__(protocol, fact, parents, barzer_svc)
+        self.ent = cg_ent_fact.CGEntityNode(data=fact.entity, expression=fact.expression, ent_question=fact.question, barzer_svc=self.barzer_svc)
 
         def step(self, input_val=None):
             resp = self.ent.step(input_val)
@@ -223,8 +231,8 @@ class ConvoProtocol(calc_graph.CGNode):
 
         super(ConvoProtocol, self).__init__()
         self.terminals = {}
-        self.facts_ = defaultdict(set)
-        self.barzer_svc = barzer_svc or barzer.barzer_svc.barzer
+        self.facts = defaultdict(set)
+        self.barzer_svc = barzer_svc or default_barzer_instance
 
         self.visited_facts = set()
         self.facts_to_update = deque()
@@ -238,15 +246,15 @@ class ConvoProtocol(calc_graph.CGNode):
             self.pq[t] = t.score()
 
     def create_or_update_fact(self, protocol, f, parents):
-        if f.id in self.facts_:
-            self.facts_[f.id].add_parents(parents)
+        if f.id in self.facts:
+            self.facts[f.id].add_parents(parents)
         else:
-            _type = self.FACT_MAP.get(f)
+            _type = self.FACT_MAP.get(f.__class__)
             if _type:
                 self.facts[f.id] = _type(protocol, f, parents)
                 self.facts[_type].add(f)
 
-        return self.facts_[f.id]
+        return self.facts[f.id]
 
     def add_fact_to_update(self, fact):
         if fact.id not in self.visited_facts:
@@ -261,7 +269,7 @@ class ConvoProtocol(calc_graph.CGNode):
 
     def step(self, input_val=None):
         if input_val:
-            for f in self.facts_[ConvoEntityFact]:
+            for f in self.facts[ConvoEntityFact]:
                 f.analyze_input(input_val)
 
         resp = self.current_child().step(input_val)

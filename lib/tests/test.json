@@ -1,58 +1,71 @@
 {
-	"composite_facts":[
+	"facts":[
 		{
 			"id": "flu",
 			"operator": "AND",
-			"facts": ["headache", "high_temperature"]
+			"node_type": "composite",
+			"facts": ["high_temperature", "headache"]
 		},
 		{
-			"id": "indisgestion",
+			"id": "911",
 			"operator": "AND",
-			"facts": ["bloating", "stomachache"]
-		}
-	],
-	"facts":[
+			"node_type": "composite",
+			"facts": ["low_pressure", "low_temperature"]
+		},
 		{
 			"id": "headache",
-			"type": "entity_fact",
+			"node_type": "entity",
 			"entity": {
-				"id": 13,
-				"subclass": 24,
-				"class": 1,
-				"name": "headache"
+                "class": 459,
+                "subclass": 3,
+                "id": "HEADACHE",
+                "name": "Headache"
 			}
 		},
 		{
 			"id": "high_temperature",
+			"node_type": "entity",
+			"expression": {
+				"op": ">",
+				"values": 37
+			},
 			"entity": {
-				"id": 13,
-				"subclass": 24,
-				"class": 1,
-				"name": "headache"
+				"id": "temperature",
+				"subclass": 9,
+				"class": 459,
+				"name": "temperature"
 			}
 		},
 		{
-			"id": "bloating",
-			"type": "entity_fact",
+			"id": "low_temperature",
+			"node_type": "entity",
+			"expression": {
+				"op": "<",
+				"values": 35
+			},
 			"entity": {
-				"id": 13,
-				"subclass": 24,
-				"class": 1,
-				"name": "headache"
+				"id": "temperature",
+				"subclass": 9,
+				"class": 459,
+				"name": "temperature"
 			}
 		},
 		{
-			"id": "stomachache",
-			"type": "entity_fact",
+			"id": "low_pressure",
+			"node_type": "entity",
+			"expression": {
+				"op": "<",
+				"values": 110
+			},
 			"entity": {
-				"id": 13,
-				"subclass": 24,
-				"class": 1,
-				"name": "headache"
+				"id": "pressure",
+				"subclass": 9,
+				"class": 459,
+				"name": "blood pressure"
 			}
 		}
 	],
 	"terminals": [
-		"flu", "indisgestion"
+		"flu", "911"
 	]
 }

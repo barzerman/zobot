@@ -4,7 +4,7 @@ import urllib
 import json
 import logging
 from pylru import lrudecorator
-import barzer_objects
+from lib.barzer import barzer_objects
 
 from config import BarzerSettings
 

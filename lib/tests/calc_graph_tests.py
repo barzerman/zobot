@@ -14,31 +14,79 @@ class CalcGraphTestCase(unittest.TestCase):
 
     def test_basic(self):
         cg = calc_graph.CG(self.CG_DATA)
-        n = calc_graph.CGNode()
+        calc_graph.CGNode()
         self.assertFalse(cg.value.is_set())
         cgdict = cg.root.to_dict()
         self.assertEquals(len(cgdict['children']), len(self.CG_DATA))
         # computational step
-        val, response = cg.step()
+        cg.step()
         self.assertTrue(cg.value.value)
 
 
 class CgEntFact(unittest.TestCase):
-    def test_cg_ent_node_basic(self):
-        objbarz = barzer_objects.BeadFactory.make_beads_from_barz(
-            barzer.get_json('headache'))
-        print >> sys.stderr, "DEBUG >>>", objbarz, "<<<"
-        node = cg_ent_fact.CGEntityNode(
+    ENT_NODE_DATA = {
+        'headache': {
+            'class': 459,
+            'subclass': 3,
+            'id': 'HEADACHE',
+            'name': 'Headache'
+        }
+    }
+    def setUp(self):
+        self.ent_node = cg_ent_fact.CGEntityNode(
             barzer_objects.Entity(
-                {
+                self.ENT_NODE_DATA['headache']
+            ))
+
+    def test_ent_expression(self):
+        cg = calc_graph.CG([
+            {
+                'node_type': 'entity',
+                'data': {
+                    'class': 459,
+                    'subclass': 9,
+                    'id': 'temperature',
+                    'name': 'Headache',
+                    'expression': {'op': '>', 'values': 100}
+                }
+            }
+        ])
+        val, ret = cg.step()
+        self.assertFalse(val.value)
+        self.assertFalse(ret.step_occured)
+        val, ret = cg.step('temprerature 99')
+        self.assertTrue(ret.step_occured)
+        self.assertFalse(val.value)
+
+    def test_ent_node_graph(self):
+        cg = calc_graph.CG([
+            {
+                'node_type': 'entity',
+                'data': {
                     'class': 459,
                     'subclass': 3,
                     'id': 'HEADACHE',
                     'name': 'Headache'
-                }))
+                }
+            }
+        ])
+        val, ret = cg.step()
+        self.assertFalse(val.value)
+        self.assertFalse(ret.step_occured)
+        val, ret = cg.step('got headache')
+        self.assertTrue(val.value)
+        self.assertTrue(ret.step_occured)
 
-        node.step()
-
+    def test_cg_ent_node_basic(self):
+        """ testing standalone CGEntityNode """
+        self.assertFalse(self.ent_node.is_set())
+        step_ret = self.ent_node.step('heart ache')
+        print >> sys.stderr, "DEBUG >>>", bool(step_ret), "<<<"
+        self.assertFalse(self.ent_node.is_set())
+        step_ret = self.ent_node.step('i have a headache')
+        print >> sys.stderr, "DEBUG >>>", 'step occured={}'.format(bool(step_ret)), "<<<"
+        self.assertTrue(self.ent_node.is_set())
+        print >> sys.stderr, "DEBUG >>>", self.ent_node.value.value, "<<<"
 
 if __name__ == '__main__':
     unittest.main()

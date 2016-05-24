@@ -1,42 +1,67 @@
 {
-	"composite_facts":[
+	"facts":[
 		{
 			"id": "flu",
 			"operator": "AND",
-			"facts": ["headache", "high_temperature"]
+			"node_type": "composite",
+			"facts": ["high_temperature", "headache"],
+			"text": "You have a flu. Please visit your doctor"
 		},
 		{
-			"id": "indisgestion",
+			"id": "911",
 			"operator": "AND",
-			"facts": ["bloating", "stomachache"]
-		}
-	],
-	"facts":[
+			"node_type": "composite",
+			"facts": ["pressure", "low_temperature"],
+			"text": "Please call 911"
+		},
 		{
 			"id": "headache",
-			"entities": ["headache"],
-			"question": "Do you have a headache?"
+			"node_type": "entity",
+			"entity": {
+                "class": 459,
+                "subclass": 3,
+                "id": "HEADACHE",
+                "name": "Headache"
+			}
 		},
 		{
 			"id": "high_temperature",
-			"entities": ["temperature"],
-			"question": "Do you have high temperature?"
+			"node_type": "entity",
+			"entity": {
+				"id": "temperature",
+				"subclass": 9,
+				"class": 459,
+				"name": "temperature",
+				"expression": {
+					"op": ">", "values": 37
+				}
+			}
 		},
 		{
-			"id": "bloating",
-			"entities": ["bloating"],
-			"question": "Do you have bloating?"
+			"id": "low_temperature",
+			"node_type": "entity",
+			"entity": {
+				"id": "temperature",
+				"subclass": 9,
+				"class": 459,
+				"name": "temperature",
+				"expression": {
+					"op": "<", "values": 35
+				}
+			}
 		},
 		{
-			"id": "stomachache",
-			"entities": ["stomachache"],
-			"question": "Do you have stomachache?"
+			"id": "pressure",
+			"node_type": "entity",
+			"entity": {
+				"id": "pressure",
+				"subclass": 9,
+				"class": 459,
+				"name": "blood pressure"
+			}
 		}
 	],
-	"entities":[
-		"headache", "temperature", "bloating", "stomachache"
-	],
 	"terminals": [
-		"flu", "indisgestion"
+		"flu", "911"
 	]
 }

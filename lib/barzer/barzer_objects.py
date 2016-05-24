@@ -1,15 +1,17 @@
 # pylint: disable=missing-docstring, invalid-name, broad-except, logging-format-interpolation
 from __future__ import division, absolute_import
 from collections import namedtuple
-import sys  # pylint: disable=unused-import
 import logging
+
 
 class EntityId(namedtuple('_EntityId', ('eclass', 'subclass', 'id'))):
     """ barzer entity """
 
+
 class Bead(object):
     """ bead class  - bead is a single element of structured output """
     type_name = ""
+
     def __init__(self, data=None):
         self.origmarkup, self.src = data.get('origmarkup'), data.get('src')
 
@@ -19,14 +21,17 @@ class Bead(object):
     def __str__(self):
         return '{}:{}'.format(self.type_name, self.value_str())
 
+
 class ValueBead(Bead):
     type_name = 'number'
+
     def __init__(self, data):
         super(ValueBead, self).__init__(data)
         self.value = data.get('value')
 
     def value_str(self):
         return str(self.value)
+
 
 class Token(ValueBead):
     """ regular token """
@@ -35,23 +40,28 @@ class Token(ValueBead):
     def value_str(self):
         return "'{}'".format(str(self.value))
 
+
 class Fluff(Token):
     type_name = 'fluff'
+
 
 class Punct(Token):
     type_name = 'punct'
 
+
 class Number(ValueBead):
     type_name = 'number'
+
 
 class EntityBase(Bead):
     """ parent type for entity based types Entity, ERC, EVR """
     def match_ent(self, ent):
         """ given another entbase object compares the main entity """
         return (
-            self.eclass == ent.eclass and # pylint: disable=no-member
-            self.subclass == self.subclass and # pylint: disable=no-member
-            self.id == ent.id) # pylint: disable=no-member
+            self.eclass == ent.eclass and  # pylint: disable=no-member
+            self.subclass == self.subclass and  # pylint: disable=no-member
+            self.id == ent.id)  # pylint: disable=no-member
+
 
 class Entity(EntityBase):
     def __init__(self, data):
@@ -77,8 +87,10 @@ class Entity(EntityBase):
     def ent_id(self):
         return EntityId(self.eclass, self.subclass, self.id)
 
+
 class Range(Bead):
     type_name = "range"
+
     def __init__(self, data):
         super(Range, self).__init__(data)
         self.rangetype = data.get('rangetype', 'real')
@@ -113,11 +125,13 @@ class Range(Bead):
         if pair[0] is None or pair[1] is None:
             return None
         else:
-            return (pair[0] + pair[1])/2
+            return (pair[0] + pair[1]) / 2
+
 
 class EVR(EntityBase):
     """ entity value range """
     type_name = "evr"
+
     def __init__(self, data):
         super(EVR, self).__init__(data)
         self.ent = Entity(data['ent'])
@@ -150,6 +164,7 @@ class EVR(EntityBase):
             if isinstance(v, the_type):
                 yield v
 
+
 class ERC(EntityBase):
     type_name = "erc"
     """ entity range combo """
@@ -163,6 +178,19 @@ class ERC(EntityBase):
 
     def ent_id(self):
         return self.ent.ent_id()
+
+    @property
+    def eclass(self):
+        return self.ent.eclass
+
+    @property
+    def subclass(self):
+        return self.ent.subclass
+
+    @property
+    def id(self):
+        return self.ent.id
+
 
 class Time(ValueBead):
     type_name = "time"
@@ -179,9 +207,11 @@ class Timestamp(Bead):
     def __str__(self):
         return '{}:{} {}'.format(self.type_name, self.date, self.time)
 
+
 class Date(ValueBead):
     type_name = "date"
     """ """
+
 
 class BeadFactory(object):
     NAME_TYPE = {

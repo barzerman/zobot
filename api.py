@@ -18,9 +18,12 @@ class ZobotServer(object):
             except Exception, e:
                 print 'can not load protocol', p_name, e
 
-    def init_convo(self, protocol_name):
+    def init_convo(self, protocol_name, external_token=None):
         if protocol_name in self.protocol_data:
-            token = str(uuid.uuid4())
+            if external_token:
+                token = external_token
+            else:
+                token = str(uuid.uuid4())
             cg = calc_graph.CG()
             cg.root = convo_fact.ConvoProtocol(self.protocol_data[protocol_name])
             self.conversations[token] = cg
@@ -48,16 +51,19 @@ class ZobotServer(object):
 zobot = ZobotServer()
 app = Flask(__name__)
 
+
 @app.route("/discover")
 def discover():
     return json.dumps(zobot.available_protocols())
 
-@app.route("/protocol/<protocol>/init")
-def login(protocol):
+
+@app.route("/protocol/<protocol>/init/<external_token>")
+def login(protocol, external_token):
     try:
-        return zobot.init_convo(protocol)
+        return zobot.init_convo(protocol, external_token)
     except:
         abort(404)
+
 
 @app.route("/convo/<token>/say")
 def say(token):
@@ -65,6 +71,7 @@ def say(token):
         return zobot.say(token, request.args.get('input', ''))
     except:
         abort(404)
+
 
 @app.route("/convo/<token>/drop")
 def drop(token):

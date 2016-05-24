@@ -1,14 +1,8 @@
-import requests
+from sdk import ZobotClient
 
-url = 'http://localhost:5000'
-protocol = 'test'
-
-token = requests.get('http://localhost:5000/protocol/test/init').text
-
-
-def get_bot_phrase(input=''):
-    return requests.get('http://localhost:5000/convo/' + token + '/say', params={'input': input}).text + '\n'
+zobot = ZobotClient('http://localhost:5000')
+zobot.set_protocol(zobot.get_available_protocols()[0])
 
 user_input = ''
 while True:
-    user_input = raw_input(get_bot_phrase(user_input))
+    user_input = raw_input(zobot.say(user_input))

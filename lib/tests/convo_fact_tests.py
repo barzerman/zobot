@@ -18,7 +18,7 @@ class ConvoFactTestCase(unittest.TestCase):
         print cg.root.step()
         print cg.root.step('I have a temperature 40')
         pp.pprint(cg.root.to_dict())
-        resp = cg.root.step('Yes, I have a headache')
+        resp = cg.root.step('Yes I have a headache')
         self.assertTrue('flu' in resp.text)
         print resp.text
 

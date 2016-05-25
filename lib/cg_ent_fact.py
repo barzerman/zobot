@@ -52,8 +52,10 @@ class CGEntityNode(calc_graph.CGNode):
         # TODO: add negative entity here - mathcing a negative entity should
         #       be interpreted as value False
         # when this gets filled step will complete
-        self.ent_value = None
+        self.ent_value = None  # TODO: refactor
         self.confidence = 0.5
+        self.waiting_for_value = False
+        self.question_count = 0
 
         if expression:
             self.expression = expression
@@ -93,9 +95,10 @@ class CGEntityNode(calc_graph.CGNode):
             else:
                 basic_question = 'Do you have a ' + self.ent.name + '?'
 
-        if beads:
+        if self.question_count > 0:
             return 'Sorry I didn\'t get that. ' + basic_question
         else:
+            self.question_count += 1
             return basic_question
 
     def compute_expression(self):
@@ -117,23 +120,44 @@ class CGEntityNode(calc_graph.CGNode):
             bool(if computation could be completed)
         """
         for bead in beads:
-            if isinstance(bead, (barzer_objects.EntityBase)):
-                if bead.match_ent(self.ent):
-                    # TODO: match negative entity here if possible
-                    if not self.expression:
-                        self.ent_value, self.confidence = True, 1.0
-                    elif isinstance(bead, barzer_objects.ERC):
-                        self.ent_value = bead.range.get_as_type_pair()
+            if self.expression:
+                if self.waiting_for_value:
+                    if isinstance(bead, barzer_objects.Number):
+                        self.ent_value = bead.value
                         self.confidence = 1.0
-                    elif isinstance(bead, barzer_objects.EVR):
-                        self.ent_value = [x for x in bead.iterate_type((
-                            barzer_objects.Range,
-                            barzer_objects.Number))]
+                        self.waiting_for_value = False
+                    elif isinstance(bead, barzer_objects.Range):
+                        self.ent_value = bead.get_as_type_pair()
                         self.confidence = 1.0
-                    else:
-                        continue
-                    return self.compute_expression()
-        return False
+                        self.waiting_for_value = False
+                else:
+                    if isinstance(bead, (barzer_objects.EntityBase)):
+                        if bead.match_ent(self.ent):
+                            # TODO: match negative entity here if possible
+                            if isinstance(bead, barzer_objects.ERC):
+                                self.ent_value = bead.range.get_as_type_pair()
+                                self.confidence = 1.0
+                            elif isinstance(bead, barzer_objects.EVR):
+                                self.ent_value = [x for x in bead.iterate_type((
+                                    barzer_objects.Range,
+                                    barzer_objects.Number))]
+                                self.confidence = 1.0
+                            else:
+                                self.waiting_for_value = True
+            else:
+                if isinstance(bead, barzer_objects.EntityBase):
+                    if bead.match_ent(self.ent):
+                        self.ent_value = True
+                        self.confidence = 1.0
+                else:
+                    if 'yes' in str(bead).lower():
+                        self.ent_value = True
+                        self.confidence = 1.0
+                    elif 'no' in str(bead).lower():
+                        self.ent_value = False
+                        self.confidence = 1.0
+
+        return self.compute_expression()
 
     def step(self, input_val=None):
         """ """

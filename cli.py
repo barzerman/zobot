@@ -1,6 +1,6 @@
 from sdk import ZobotClient
 
-zobot = ZobotClient('http://localhost:5000')
+zobot = ZobotClient()
 zobot.set_protocol(zobot.get_available_protocols()[0])
 
 user_input = ''

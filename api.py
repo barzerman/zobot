@@ -57,12 +57,14 @@ def discover():
     return json.dumps(zobot.available_protocols())
 
 
+@app.route("/protocol/<protocol>/init")
+def login(protocol):
+    return zobot.init_convo(protocol)
+
+
 @app.route("/protocol/<protocol>/init/<external_token>")
-def login(protocol, external_token):
-    try:
-        return zobot.init_convo(protocol, external_token)
-    except:
-        abort(404)
+def login_with_token(protocol, external_token):
+    return zobot.init_convo(protocol, external_token)
 
 
 @app.route("/convo/<token>/say")

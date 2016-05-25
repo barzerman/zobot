@@ -55,7 +55,6 @@ class CGEntityNode(calc_graph.CGNode):
         self.ent_value = None  # TODO: refactor
         self.confidence = 0.5
         self.waiting_for_value = False
-        self.question_count = 0
 
         if expression:
             self.expression = expression
@@ -80,6 +79,7 @@ class CGEntityNode(calc_graph.CGNode):
         Returns:
             text
         """
+        self.waiting_for_value = True
         if self.value.is_set():
             return 'I understand'
 
@@ -95,11 +95,7 @@ class CGEntityNode(calc_graph.CGNode):
             else:
                 basic_question = 'Do you have a ' + self.ent.name + '?'
 
-        if self.question_count > 0:
-            return 'Sorry I didn\'t get that. ' + basic_question
-        else:
-            self.question_count += 1
-            return basic_question
+        return basic_question
 
     def compute_expression(self):
         """ once ent_val is ready call this to pupulate output value """
@@ -142,21 +138,20 @@ class CGEntityNode(calc_graph.CGNode):
                                     barzer_objects.Range,
                                     barzer_objects.Number))]
                                 self.confidence = 1.0
-                            else:
-                                self.waiting_for_value = True
             else:
-                if isinstance(bead, barzer_objects.EntityBase):
-                    if bead.match_ent(self.ent):
-                        self.ent_value = True
-                        self.confidence = 1.0
-                else:
+                if self.waiting_for_value:
                     if 'yes' in str(bead).lower():
                         self.ent_value = True
                         self.confidence = 1.0
                     elif 'no' in str(bead).lower():
                         self.ent_value = False
                         self.confidence = 1.0
+                elif isinstance(bead, barzer_objects.EntityBase):
+                    if bead.match_ent(self.ent):
+                        self.ent_value = True
+                        self.confidence = 1.0
 
+        self.waiting_for_value = False
         return self.compute_expression()
 
     def step(self, input_val=None):

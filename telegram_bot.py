@@ -1,9 +1,15 @@
 import telebot
 from sdk import ZobotClient
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("-p", "--port", dest="port", metavar="PORT", default="5000")
+parser.add_option("-d", "--domain", dest="domain", metavar="HOST", default="http://127.0.0.1")
+(options, args) = parser.parse_args()
 
 # telegram.me/zobot_test_bot
 bot = telebot.TeleBot("208359220:AAGAXDsRRiFzaPjwSztv6sH8Httqqg660ow")
-zobot = ZobotClient()
+zobot = ZobotClient(host=options.domain, port=options.port)
 
 available_protocols = zobot.get_available_protocols()
 protocols_msg = '/n'.join(['/' + x for x in available_protocols])

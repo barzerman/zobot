@@ -3,8 +3,8 @@ import json
 
 
 class ZobotClient(object):
-    def __init__(self, zobot_url='http://localhost:5000'):
-        self.url = zobot_url
+    def __init__(self, host='http://127.0.0.1', port='5000'):
+        self.url = host + ':' + port
         self.token = None
 
     def get_available_protocols(self):

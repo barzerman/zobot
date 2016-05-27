@@ -2,7 +2,7 @@
 """ simple entity based fact node implementation """
 from functools import partial
 from lib.barzer import barzer_objects
-from lib import calc_graph
+from lib import calc_graph, calc_node_value_type
 from lib import barzer
 
 
@@ -47,11 +47,13 @@ class CGEntityNode(calc_graph.CGNode):
             expression (arithmetic expression over value)
         """
         super(CGEntityNode, self).__init__()
-        entity_type = barzer_objects.Entity
-        self.ent = data if isinstance(data, entity_type) else entity_type(data)
-        # TODO: add negative entity here - mathcing a negative entity should
-        #       be interpreted as value False
-        # when this gets filled step will complete
+
+        if 'value_type' in data:
+            self.value_type = calc_node_value_type.make_value_type(data['value_type'])
+
+        self.ent = data if isinstance(
+            data, barzer_objects.Entity) else barzer_objects.Entity(data)
+
         self.ent_value = None
         self.confidence = 0.5
 
@@ -119,7 +121,6 @@ class CGEntityNode(calc_graph.CGNode):
         for bead in beads:
             if isinstance(bead, (barzer_objects.EntityBase)):
                 if bead.match_ent(self.ent):
-                    # TODO: match negative entity here if possible
                     if not self.expression:
                         self.ent_value, self.confidence = True, 1.0
                     elif isinstance(bead, barzer_objects.ERC):
@@ -133,6 +134,8 @@ class CGEntityNode(calc_graph.CGNode):
                     else:
                         continue
                     return self.compute_expression()
+        # TODO: if nothing matched and node is activated
+        # match based on value_type here
         return False
 
     def step(self, input_val=None):
@@ -153,6 +156,7 @@ class CGEntityNode(calc_graph.CGNode):
                     step_occured=calc_completed
                 )
             else:
+                # TODO: activate entity node here
                 return calc_graph.CGStepResponse(
                     text=self.get_question()
                 )

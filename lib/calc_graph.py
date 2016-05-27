@@ -4,12 +4,6 @@
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
 
-
-class CGNodeValueType(object):
-    def __init__(self, node):
-        pass
-
-
 class CGNodeValue(object):
     """ node value """
     def __init__(self, value=None, val_type=None, is_array=False):

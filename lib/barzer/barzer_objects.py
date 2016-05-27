@@ -3,10 +3,8 @@ from __future__ import division, absolute_import
 from collections import namedtuple
 import logging
 
-
 class EntityId(namedtuple('_EntityId', ('eclass', 'subclass', 'id'))):
     """ barzer entity """
-
 
 class Bead(object):
     """ bead class  - bead is a single element of structured output """
@@ -235,6 +233,10 @@ class BeadFactory(object):
             if b:
                 result.append(b)
         return result
+
+    @classmethod
+    def get_type_by_name(cls, name):
+        return cls.NAME_TYPE.get(name)
 
     @classmethod
     def make_bead_from_dict(cls, data, default_type=None):

@@ -1,4 +1,9 @@
 #!/bin/bash
 
 export PYTHONPATH=.
-find . -name '*_tests.py' | xargs py.test 
+
+if [[ -z $1 ]]; then
+find . -name '*_tests.py'
+else
+    echo $*
+fi | xargs py.test 

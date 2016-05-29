@@ -39,7 +39,10 @@ class CGEntityNode(calc_graph.CGNode):
     """ """
     node_type_id = 'entity'
 
-    def __init__(self, data, expression=None, ent_question=None, barzer_svc=None):
+    def __init__(
+            self, data, expression=None,
+            ent_question=None, barzer_svc=None
+        ):
         """
         Arguments:
             ent (barzer.Entity|dict) - dict is passed to the Entity
@@ -48,8 +51,6 @@ class CGEntityNode(calc_graph.CGNode):
         """
         super(CGEntityNode, self).__init__()
 
-        if 'value_type' in data:
-            self.value_type = calc_node_value_type.make_value_type(data['value_type'])
 
         self.ent = data if isinstance(
             data, barzer_objects.Entity) else barzer_objects.Entity(data)
@@ -59,8 +60,12 @@ class CGEntityNode(calc_graph.CGNode):
 
         if expression:
             self.expression = expression
-        elif isinstance(data, dict) and 'expression' in data:
-            self.expression = CompareExpression(data['expression'])
+        elif isinstance(data, dict):
+            self.value_type = calc_node_value_type.make_value_type(
+                data.get('value_type'))
+            expression = data.get('expression')
+            self.expression = CompareExpression(
+                expression) if expression else None
         else:
             self.expression = None
 

@@ -1,5 +1,6 @@
 # pylint: disable=line-too-long, missing-docstring, invalid-name, superfluous-parens
 """ core calc graph objects """
+import sys
 
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
@@ -17,6 +18,9 @@ class CGNodeValue(object):
         self.is_array = is_array
         if value is not None:
             self.set_val(value)
+
+    def as_dict(self):
+        return {'value_type': self.val_type, 'is_array': self.is_array, 'value': self.value}
 
     def __str__(self):
         if self.is_set():
@@ -197,6 +201,14 @@ class CGNode(object):
                 node_type_id, CGNode if node_type_id else None
             )
 
+    def as_dict(self):
+        result = dict()
+        if self.op:
+            result['op'] = self.op
+        if self.children:
+            result['children'] = [c.as_dict() for c in self.children]
+        return result
+
     def set_children(self, children):
         self.children = children
         self.child_iter = CGOperator.arg_iterator()(self.children)
@@ -289,14 +301,17 @@ class CG(object):
             )
             the_id = data.get('id')
             if 'data' in data:
-                n = node_type(data['data'])
+                node_data = data['data']
+                n = node_type(node_data)
+                if the_id is None:
+                    the_id = node_data.get('node_id')
             else:
                 val_type = data.get('type')
                 op = data.get('op')
                 value = data.get('value')
                 n = node_type(op, val_type, value)
 
-            if the_id is not None:
+            if the_id:
                 self.nodes[the_id] = n
 
             children = data.get('children')
@@ -306,6 +321,9 @@ class CG(object):
                 return n
 
         return node
+
+    def as_dict(self):
+        return self.root.as_dict()
 
     @property
     def value(self):

@@ -1,5 +1,8 @@
 # pylint: disable=empty-docstring, invalid-name, missing-docstring
 """ simple entity based fact node implementation """
+import json
+import sys
+
 from functools import partial
 from lib.barzer import barzer_objects
 from lib import calc_graph, calc_node_value_type
@@ -50,7 +53,7 @@ class CGEntityNode(calc_graph.CGNode):
             expression (arithmetic expression over value)
         """
         super(CGEntityNode, self).__init__()
-
+        self.activated = False
 
         self.ent = data if isinstance(
             data, barzer_objects.Entity) else barzer_objects.Entity(data)
@@ -58,6 +61,7 @@ class CGEntityNode(calc_graph.CGNode):
         self.ent_value = None
         self.confidence = 0.5
 
+        self.value_type = None
         if expression:
             self.expression = expression
         elif isinstance(data, dict):
@@ -69,8 +73,33 @@ class CGEntityNode(calc_graph.CGNode):
         else:
             self.expression = None
 
+        if not self.value_type:
+            self.value_type = calc_node_value_type.NodeValueTypeNumber()
+
         self.ent_question = ent_question
         self.barzer_svc = barzer_svc or barzer.barzer_svc.barzer
+        self.active_value_type = self.value_type
+
+    def as_dict(self):
+        result = {
+            'type': self.node_type_id,
+        }
+        for attr in self.__dict__:
+            if getattr(self, attr, None) is not None:
+                result[attr] = str(getattr(self, attr))
+        return result
+
+    def is_activated(self):
+        return self.activated
+
+    def deactivate(self):
+        self.activated = False
+        self.active_value_type = self.value_type
+
+    def activate(self, value_type=None):
+        if not self.activated:
+            self.activated = True
+        self.active_value_type = value_type or self.value_type
 
     def is_ent_val_ready(self):
         """ True if we have entity value with high confidence """
@@ -88,10 +117,6 @@ class CGEntityNode(calc_graph.CGNode):
         if self.value.is_set():
             return 'I understand'
 
-        # TODO: hook up a more advanced question generation here
-        #  1. randomized "Sorry I didn't get it"
-        #  2. automated and randomized entity question generation based on both
-        #     entity and expression
         if self.ent_question:
             basic_question = self.ent_question
         else:
@@ -139,8 +164,16 @@ class CGEntityNode(calc_graph.CGNode):
                     else:
                         continue
                     return self.compute_expression()
-        # TODO: if nothing matched and node is activated
-        # match based on value_type here
+        if self.is_activated() and self.active_value_type:
+            # if nothing matched explicitly and node is activated
+            for bead in beads:
+                is_match, bead_val = self.active_value_type.match_value(bead)
+                if is_match:
+                    self.ent_value = bead_val
+                    self.confidence = 1.0
+                    self.deactivate()
+                    return self.compute_expression()
+
         return False
 
     def step(self, input_val=None):
@@ -161,7 +194,7 @@ class CGEntityNode(calc_graph.CGNode):
                     step_occured=calc_completed
                 )
             else:
-                # TODO: activate entity node here
+                self.activate()
                 return calc_graph.CGStepResponse(
                     text=self.get_question()
                 )

@@ -1,7 +1,6 @@
 # pylint: disable=empty-docstring, invalid-name, missing-docstring
+import sys
 from lib.barzer import barzer_objects
-import config
-import json
 
 class NodeValueTypeMeta(type):
     def __init__(cls, name, bases, dct):
@@ -40,14 +39,49 @@ class NodeValueTypeNumber(NodeValueType):
              lo (Number) - optional smallest allowed value
              hi (Number) - optional highest allowed value
         """
+        super(NodeValueTypeNumber, self).__init__()
         self.lo, self.hi = lo, hi
         self.type = barzer_objects.Number
 
+    def match_number(self, num):
+        if self.lo is not None:
+            if num < self.lo:
+                return False
+        if self.hi is not None:
+            if num > self.hi:
+                return False
+
+        return True
+
     def match_value(self, bead):
         if isinstance(bead, barzer_objects.Number):
-            return True, bead.value
+            if self.match_number(bead.value):
+                return True, bead.value
+            else:
+                return False, bead.value
         if isinstance(bead, barzer_objects.Range) and bead.is_numeric():
-            return True, bead.get_as_single_number()
+            num = bead.get_as_single_number()
+            if self.match_number(num):
+                return True, num
+            else:
+                return False, num
+        elif isinstance(bead, barzer_objects.ERC):
+            num = bead.range.get_as_single_number()
+            if self.match_number(num):
+                return True, num
+            else:
+                return False, num
+        elif isinstance(bead, barzer_objects.EVR):
+            for x, the_type in bead.iterate_type(
+                    (barzer_objects.Range, barzer_objects.Number)):
+                if the_type == barzer_objects.Range:
+                    num = bead.get_as_single_number()
+                else:
+                    num = x.value
+            if self.match_number(num):
+                return True, num
+            else:
+                return False, num
         else:
             return False, None
 
@@ -70,6 +104,20 @@ class NodeValueTypeBool(NodeValueType):
             # this is not a boolean value
             return False, None
 
-def make_value_type(type_name, **kwargs):
+def make_value_type(value_type_data):
+    """ creates a value type object from value_type_data
+    Args:
+        value_type_data (str|dict) - when str it's simply a type name
+            when dict then the type name is in `type` attribute
+    """
+    if not value_type_data:
+        return None
+    args = {}
+    if isinstance(value_type_data, str):
+        type_name = value_type_data
+    elif isinstance(value_type_data, dict):
+        type_name = value_type_data['type']
+        args = {k: v for k, v in value_type_data.iteritems() if k != 'type'}
+
     the_type = NodeValueType.node_val_type_registry.get(type_name) # pylint: disable=no-member
-    return the_type(**kwargs) if the_type else None
+    return the_type(**args) if the_type else None

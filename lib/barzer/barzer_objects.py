@@ -168,7 +168,7 @@ class EVR(EntityBase):
         """
         for v in self.values:
             if isinstance(v, the_type):
-                yield v
+                yield v, the_type
 
 
 class ERC(EntityBase):

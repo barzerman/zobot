@@ -141,6 +141,8 @@ class CGStepResponse(object):
         self.beads = beads
         self.step_occured = step_occured
 
+    def __repr__(self):
+        return self.__str__()
     def __str__(self):
         return 'text={} beads={} step_occured={}'.format(
             self.text,

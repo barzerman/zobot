@@ -152,9 +152,6 @@ class ConvoEntityFact(ConvoFact):
         self.update(value=self.ent.value, confidence=self.ent.confidence)
         return resp
 
-    def get_question(self):
-        return self.ent.get_question()
-
     def analyze_beads(self, beads):
         self.ent.analyze_beads(beads)
         self.update(value=self.ent.value, confidence=self.ent.confidence)

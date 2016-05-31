@@ -1,9 +1,9 @@
-# pylint: disable=missing-docstring, invalid-name, trailing-whitespace, line-too-long
+# pylint: disable=missing-docstring, invalid-name, line-too-long
 from collections import defaultdict, deque
+import pqdict
 from toposort import toposort
 from lib import cg_ent_fact
 from lib.barzer.barzer_svc import barzer as default_barzer_instance
-import pqdict
 from lib import calc_graph
 
 
@@ -11,7 +11,6 @@ class Fact(object):
     def __init__(self, data, protocol=None):
         self.id = data['id']
         self.question = data.get('question')
-
 
 class EntityFact(Fact):
     def __init__(self, data, protocol=None):
@@ -31,7 +30,7 @@ class CompositeFact(Fact):
 
 
 class Protocol(object):
-    FACT_MAP = { 
+    FACT_MAP = {
         'entity': EntityFact,
         'composite': CompositeFact,
         None: Fact
@@ -40,7 +39,7 @@ class Protocol(object):
     def __init__(self, data):
         self.facts = {}
 
-        # topologically sorting facts 
+        # topologically sorting facts
         G = defaultdict(set)
         for fact in data['facts']:
             self.facts[fact['id']] = fact
@@ -151,9 +150,6 @@ class ConvoEntityFact(ConvoFact):
         resp = self.ent.step(input_val)
         self.update(value=self.ent.value, confidence=self.ent.confidence)
         return resp
-
-    def get_question(self):
-        return self.ent.get_question()
 
     def analyze_beads(self, beads):
         self.ent.analyze_beads(beads)

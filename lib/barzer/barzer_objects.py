@@ -3,10 +3,8 @@ from __future__ import division, absolute_import
 from collections import namedtuple
 import logging
 
-
 class EntityId(namedtuple('_EntityId', ('eclass', 'subclass', 'id'))):
     """ barzer entity """
-
 
 class Bead(object):
     """ bead class  - bead is a single element of structured output """
@@ -28,6 +26,9 @@ class ValueBead(Bead):
     def __init__(self, data):
         super(ValueBead, self).__init__(data)
         self.value = data.get('value')
+
+    def __repr__(self):
+        return self.value_str()
 
     def value_str(self):
         return str(self.value)
@@ -51,7 +52,6 @@ class Punct(Token):
 
 class Number(ValueBead):
     type_name = 'number'
-
 
 class EntityBase(Bead):
     """ parent type for entity based types Entity, ERC, EVR """
@@ -82,7 +82,10 @@ class Entity(EntityBase):
         return self.__str__()
 
     def __str__(self):
-        return 'entity:{}.{}.{}'.format(self.scope, self.category, self.id)
+        return 'entity:{}.{}.{}'.format(
+            self.scope if self.scope else self.eclass,
+            self.category if self.category else self.subclass,
+            self.id)
 
     def ent_id(self):
         return EntityId(self.eclass, self.subclass, self.id)
@@ -120,13 +123,16 @@ class Range(Bead):
         else:
             return (lo, hi)
 
+    def is_numeric(self):
+        return (isinstance(self.lo, (int, float))
+                or isinstance(self.lo, (int, float)))
+
     def get_as_single_number(self, num_type=float):
         pair = self.get_as_type_pair(the_type=num_type)
         if pair[0] is None or pair[1] is None:
             return None
         else:
             return (pair[0] + pair[1]) / 2
-
 
 class EVR(EntityBase):
     """ entity value range """
@@ -162,7 +168,7 @@ class EVR(EntityBase):
         """
         for v in self.values:
             if isinstance(v, the_type):
-                yield v
+                yield v, the_type
 
 
 class ERC(EntityBase):
@@ -235,6 +241,10 @@ class BeadFactory(object):
             if b:
                 result.append(b)
         return result
+
+    @classmethod
+    def get_type_by_name(cls, name):
+        return cls.NAME_TYPE.get(name)
 
     @classmethod
     def make_bead_from_dict(cls, data, default_type=None):

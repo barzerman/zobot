@@ -1,11 +1,12 @@
 # pylint: disable=missing-docstring,unused-import,invalid-name,no-self-use
 import unittest
 import sys
+import json
 from lib import calc_graph
 from lib import cg_ent_fact
 from lib.barzer.barzer_svc import barzer
 from lib.barzer import barzer_objects
-
+from lib import calc_node_value_type
 
 class CalcGraphTestCase(unittest.TestCase):
     CG_DATA = [
@@ -30,6 +31,14 @@ class CgEntFact(unittest.TestCase):
             'subclass': 3,
             'id': 'HEADACHE',
             'name': 'Headache'
+        },
+        'temperature': {
+            'class': 459,
+            'subclass': 9,
+            'id': 'temperature',
+            'name': 'Temperature',
+            'expression': {'op': '>', 'values': 200},
+            'node_id': 'node.temperature'
         }
     }
     def setUp(self):
@@ -38,19 +47,26 @@ class CgEntFact(unittest.TestCase):
                 self.ENT_NODE_DATA['headache']
             ))
 
-    def test_ent_expression(self):
-        cg = calc_graph.CG([
-            {
-                'node_type': 'entity',
-                'data': {
-                    'class': 459,
-                    'subclass': 9,
-                    'id': 'temperature',
-                    'name': 'Headache',
-                    'expression': {'op': '>', 'values': 100}
-                }
-            }
-        ])
+    def _make_entity_node(self, data):
+        if isinstance(data, dict):
+            return calc_graph.CG([{'node_type': 'entity', 'data': data}])
+        else:
+            return calc_graph.CG([{'node_type': 'entity', 'data': x} for x in data])
+
+
+    def test_value_type(self):
+        cg = self._make_entity_node(self.ENT_NODE_DATA['temperature'])
+        print >> sys.stderr, "DEBUG test_value_type >>>", json.dumps(cg.as_dict(), indent=4), "<<<"
+        val, ret = cg.step()
+        print >> sys.stderr, "DEBUG test_value_type after step >>>", val, ret, "<<<"
+        temp_val = 100
+        val, ret = cg.step(str(temp_val))
+        self.assertFalse(val.value)
+        self.assertEquals(temp_val, cg.nodes['node.temperature'].ent_value)
+        print >> sys.stderr, "DEBUG test_value_type >>>", val.value, ret, cg.nodes['node.temperature'].ent_value, "<<<"
+
+    def test_ent_expressions(self):
+        cg = self._make_entity_node(self.ENT_NODE_DATA['temperature'])
         val, ret = cg.step()
         self.assertFalse(val.value)
         self.assertFalse(ret.step_occured)
@@ -84,7 +100,8 @@ class CgEntFact(unittest.TestCase):
         print >> sys.stderr, "DEBUG >>>", bool(step_ret), "<<<"
         self.assertFalse(self.ent_node.is_set())
         step_ret = self.ent_node.step('i have a headache')
-        print >> sys.stderr, "DEBUG >>>", 'step occured={}'.format(bool(step_ret)), "<<<"
+        print >> sys.stderr, "DEBUG >>>", 'step occured={}'.format(
+                bool(step_ret)), "<<<"
         self.assertTrue(self.ent_node.is_set())
         print >> sys.stderr, "DEBUG >>>", self.ent_node.value.value, "<<<"
 

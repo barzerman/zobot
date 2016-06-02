@@ -30,6 +30,8 @@ class NodeValueType(object):
         else:
             return False, None
 
+    def default_question_prefix(self):
+        return None
 
 class NodeValueTypeNumber(NodeValueType):
     node_value_type = 'number'
@@ -85,6 +87,9 @@ class NodeValueTypeNumber(NodeValueType):
         else:
             return False, None
 
+    def default_question_prefix(self):
+        return 'What is'
+        
 class NodeValueTypeBool(NodeValueType):
     node_value_type = 'bool'
     def __init__(self, true_bead=None, false_bead=None, **kwargs): # pylint: disable=unused-argument
@@ -103,6 +108,9 @@ class NodeValueTypeBool(NodeValueType):
         else:
             # this is not a boolean value
             return False, None
+
+    def default_question_prefix(self):
+        return 'Do you have'
 
 def make_value_type(value_type_data):
     """ creates a value type object from value_type_data

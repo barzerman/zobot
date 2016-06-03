@@ -282,6 +282,10 @@ class CGNode(object):
 
         return ret
 
+class CGNodeBasic(CGNode):
+    """ plain numeric node """
+    node_type_id = 'basic'
+
 class CG(object):
     """ calculation dag """
     def __init__(self, node_data=None, graph_data=None):
@@ -347,6 +351,5 @@ class CG(object):
         return self.root.value
 
     def step(self, input_val=None):
-        print >> sys.stderr, "SHIT graph step", "<<<<"
         step_response = self.root.step(input_val=input_val)
         return self.root.value, step_response

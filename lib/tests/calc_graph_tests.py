@@ -10,7 +10,7 @@ from lib import calc_node_value_type
 
 class CalcGraphTestCase(unittest.TestCase):
     CG_DATA = [
-        {'value': '1234'}
+        {'node_type': 'basic', 'value': '1234'}
     ]
 
     def test_basic(self):

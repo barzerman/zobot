@@ -33,7 +33,6 @@ class Runner(object):
         print >> sys.stderr, self.cg.greeting()
         while True:
             line = raw_input('>')
-            print >> sys.stderr, "SHIT >>>", line, "<<<"
             x = self.cg.step(line)
             print >> sys.stderr, x
 

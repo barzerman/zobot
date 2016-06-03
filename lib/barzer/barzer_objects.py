@@ -62,7 +62,6 @@ class EntityBase(Bead):
             self.subclass == self.subclass and  # pylint: disable=no-member
             self.id == ent.id)  # pylint: disable=no-member
 
-
 class Entity(EntityBase):
     def __init__(self, data):
         """

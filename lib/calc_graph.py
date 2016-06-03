@@ -273,12 +273,20 @@ class CGNode(object):
                         return ret
                     else:
                         ret.step_occured = True
+                        input_val = None
 
             if not current_child:
-                self.value = self.op_calc(
-                    children=self.get_children(),
-                    input_val=input_val
-                )
+                children = self.get_children()
+                if len(children) < 2:
+                    self.value = self.op_calc(
+                        children=children,
+                        input_val=input_val
+                    )
+                else:
+                    self.value.set_val(self.op_calc(
+                        children=children,
+                        input_val=input_val
+                    ))
 
         return ret
 

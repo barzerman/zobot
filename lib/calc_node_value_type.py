@@ -1,5 +1,6 @@
 # pylint: disable=empty-docstring, invalid-name, missing-docstring
 import sys
+import config
 from lib.barzer import barzer_objects
 
 class NodeValueTypeMeta(type):
@@ -89,25 +90,26 @@ class NodeValueTypeNumber(NodeValueType):
 
     def default_question_prefix(self):
         return 'What is'
-        
-class NodeValueTypeBool(NodeValueType):
+
+class NodeValueTypeYesNo(NodeValueType):
     node_value_type = 'bool'
-    def __init__(self, true_bead=None, false_bead=None, **kwargs): # pylint: disable=unused-argument
-        # TODO: implement config defaults for true_bead false_bead
-        super(NodeValueTypeBool, self).__init__()
-        self.true_val = true_bead
-        self.false_val = false_bead
+    def __init__(self, **kwargs): # pylint: disable=unused-argument
+        """
+        Yes/No value type
+        """
+        super(NodeValueTypeYesNo, self).__init__()
+        self.true_val = barzer_objects.Entity(config.RulesSettings.YES_ENTITY)
+        self.false_val = barzer_objects.Entity(config.RulesSettings.NO_ENTITY)
 
     def match_value(self, bead):
-        if bead == self.true_val:
-            # it's a boolean and it is true
-            return True, True
-        elif bead == self.false_val:
-            # it's a boolean and it is false
-            return True, False
-        else:
-            # this is not a boolean value
-            return False, None
+        if isinstance(bead, barzer_objects.EntityBase):
+            if bead.match_ent(self.true_val):
+                return True, True
+            elif bead.match_ent(self.false_val):
+                return True, False
+
+        # this is not a yesno value
+        return False, None
 
     def default_question_prefix(self):
         return 'Do you have'

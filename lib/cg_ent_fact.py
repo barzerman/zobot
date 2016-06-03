@@ -78,7 +78,7 @@ class CGEntityNode(calc_graph.CGNode):
             if self.expression:
                 self.value_type = calc_node_value_type.NodeValueTypeNumber()
             else:
-                self.value_type = calc_node_value_type.NodeValueTypeBool() # pylint: disable=redefined-variable-type
+                self.value_type = calc_node_value_type.NodeValueTypeYesNo() # pylint: disable=redefined-variable-type
 
         self.question_prefix = self.value_type.default_question_prefix()
         self.ent_question = ent_question
@@ -127,7 +127,7 @@ class CGEntityNode(calc_graph.CGNode):
             text
         """
         if self.value.is_set():
-            return 'I understand'
+            return 'Thank you!'
 
         if self.ent_question:
             basic_question = self.ent_question
@@ -136,7 +136,10 @@ class CGEntityNode(calc_graph.CGNode):
                 self.question_prefix, self.ent.name)
 
         if beads:
-            return 'Sorry I didn\'t get that. ' + basic_question
+            if self.activated:
+                return 'Sorry I didn\'t get that. ' + basic_question
+            else:
+                return basic_question
         else:
             return basic_question
 

@@ -2,6 +2,7 @@
 """ core calc graph objects """
 import sys # pylint: disable=unused-import
 
+
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
 
@@ -153,6 +154,7 @@ class CGStepResponse(object):
     def __nonzero__(self):
         return bool(self.step_occured)
 
+
 class CGNodeMeta(type):
     """ CGNode metaclass
     children of CGNode can later on be located by
@@ -167,6 +169,7 @@ class CGNodeMeta(type):
                 getattr(cls, 'node_type_id', name.lower())
             ] = cls
         super(CGNodeMeta, cls).__init__(name, bases, dct)
+
 
 class CGNode(object):
     __metaclass__ = CGNodeMeta

@@ -1,7 +1,4 @@
-# pylint: disable=empty-docstring, invalid-name, missing-docstring
 """ simple entity based fact node implementation """
-import json
-import sys
 
 from functools import partial
 from lib.barzer import barzer_objects
@@ -40,6 +37,8 @@ class CompareExpression(object):
 
 class CGEntityNode(calc_graph.CGNode):
     """ """
+    # pylint: disable=too-many-instance-attributes
+
     node_type_id = 'entity'
 
     def __init__(
@@ -62,6 +61,7 @@ class CGEntityNode(calc_graph.CGNode):
         self.confidence = 0.5
 
         self.value_type = None
+
         if expression:
             self.expression = expression
         elif isinstance(data, dict):
@@ -70,12 +70,17 @@ class CGEntityNode(calc_graph.CGNode):
             expression = data.get('expression')
             self.expression = CompareExpression(
                 expression) if expression else None
+            self.question_prefix = data.get('question prefix')
         else:
             self.expression = None
 
         if not self.value_type:
-            self.value_type = calc_node_value_type.NodeValueTypeNumber()
+            if self.expression:
+                self.value_type = calc_node_value_type.NodeValueTypeNumber()
+            else:
+                self.value_type = calc_node_value_type.NodeValueTypeYesNo() # pylint: disable=redefined-variable-type
 
+        self.question_prefix = self.value_type.default_question_prefix()
         self.ent_question = ent_question
         self.barzer_svc = barzer_svc or barzer.barzer_svc.barzer
         self.active_value_type = self.value_type
@@ -122,18 +127,19 @@ class CGEntityNode(calc_graph.CGNode):
             text
         """
         if self.value.is_set():
-            return 'I understand'
+            return 'Thank you!'
 
         if self.ent_question:
             basic_question = self.ent_question
         else:
-            if self.expression:
-                basic_question = 'What is your ' + self.ent.name + '?'
-            else:
-                basic_question = 'Do you have a ' + self.ent.name + '?'
+            basic_question = '{} {}?'.format(
+                self.question_prefix, self.ent.name)
 
         if beads:
-            return 'Sorry I didn\'t get that. ' + basic_question
+            if self.activated:
+                return 'Sorry I didn\'t get that. ' + basic_question
+            else:
+                return basic_question
         else:
             return basic_question
 

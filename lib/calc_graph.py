@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, missing-docstring, invalid-name, superfluous-parens
 """ core calc graph objects """
-import sys
+import sys # pylint: disable=unused-import
 
 
 class NodeValueNotSet(Exception):
@@ -276,36 +276,62 @@ class CGNode(object):
                         return ret
                     else:
                         ret.step_occured = True
+                        input_val = None
 
             if not current_child:
-                self.value = self.op_calc(
-                    children=self.get_children(),
-                    input_val=input_val
-                )
+                children = self.get_children()
+                if len(children) < 2:
+                    self.value = self.op_calc(
+                        children=children,
+                        input_val=input_val
+                    )
+                else:
+                    self.value.set_val(self.op_calc(
+                        children=children,
+                        input_val=input_val
+                    ))
 
         return ret
 
+class CGNodeBasic(CGNode):
+    """ plain numeric node """
+    node_type_id = 'basic'
 
 class CG(object):
     """ calculation dag """
-    def __init__(self, data=None):
+    def __init__(self, node_data=None, graph_data=None):
         """
+        Args:
+            node_data (dict) - dictionary containing graph nodes
+            graph_data (dict) - global graph parameters
         """
         self.nodes = dict()
         self.root = CGNode()
-        self.init_from_data(data, self.root)
+        self.init_from_data(node_data, self.root)
+        if graph_data:
+            self.bot_name = graph_data.get('name', 'Zobot')
+        else:
+            self.bot_name = 'Zobot'
+        self.farewell = "Good bye"
+
+    def bye(self):
+        """ returns bot's farewell """
+        return self.farewell
+
+    def greeting(self):
+        """ returns bot's greeting (initial) """
+        return 'Hi I\'m {}. What can I do for you?'.format(self.bot_name)
 
     def init_from_data(self, data, node, list_node_type=CGNode):
         if isinstance(data, (list, set, frozenset)):
-            for d in data:
-                return node.set_children(
-                    [self.init_from_data(d, list_node_type()) for d in data]
-                )
+            return node.set_children(
+                [self.init_from_data(d, list_node_type()) for d in data]
+            )
         elif isinstance(data, dict):
             node_type = CGNode.get_class_by_node_type_id(
-                data.get('node_type')
+                data.get('node_type', 'entity')
             )
-            the_id = data.get('id')
+            the_id = data.get('id', data.get('node_id'))
             if 'data' in data:
                 node_data = data['data']
                 n = node_type(node_data)

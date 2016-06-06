@@ -15,4 +15,20 @@ class RulesSettings(object):
         {'name': 'diagnostic'},
         {'name': 'personal details'},
     ]
+    YES_ENTITY = {
+        "class": 1,
+        "scope": "Generic",
+        "category": "eng_convo",
+        "subclass": 105,
+        "id": "YES",
+        "name": "yes",
+    }
+    NO_ENTITY = {
+        "class": 1,
+        "scope": "Generic",
+        "category": "eng_convo",
+        "subclass": 105,
+        "id": "YES",
+        "name": "yes",
+    }
 

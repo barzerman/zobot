@@ -1,0 +1,27 @@
+[
+    {
+        "node_id": "node.headache",
+        "data": {
+            "class": 459,
+            "subclass": 3,
+            "id": "HEADACHE",
+            "name": "headache"
+        }
+    },
+    {
+        "nodetype": "entity",
+        "node_id": "node.temperature",
+        "data": {
+            "class": 459,
+            "subclass": 9,
+            "id": "temperature",
+            "name": "temperature",
+            "expression": {"op": ">", "values": 200},
+            "value_type": {
+                "type": "number",
+                "lo": 50,
+                "hi": 350
+            }       
+        }
+    }
+]

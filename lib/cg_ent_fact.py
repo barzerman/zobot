@@ -34,7 +34,6 @@ class CompareExpression(object):
         self.func = partial(
             self.router[data.get('op', '=')], data.get('values'))
 
-
 class CGEntityNode(calc_graph.CGNode):
     """ """
     # pylint: disable=too-many-instance-attributes
@@ -168,18 +167,20 @@ class CGEntityNode(calc_graph.CGNode):
         Returns:
             bool(if computation could be completed)
         """
-        for bead in beads:
-            if isinstance(bead, (barzer_objects.EntityBase)):
-                if bead.match_ent(self.ent):
-                    if not self.expression:
-                        self.ent_value, self.confidence = True, 1.0
-                        return self.compute_expression()
-                    else:
-                        is_match, bead_val = self.active_value_type.match_value(bead)
-                        if is_match:
-                            return self.set_val_and_compute(bead_val)
+        is_match, bead_val, check_singles = self.active_value_type.match_all_beads(beads)
+        if check_singles:
+            for bead in beads:
+                if isinstance(bead, (barzer_objects.EntityBase)):
+                    if bead.match_ent(self.ent):
+                        if not self.expression:
+                            self.ent_value, self.confidence = True, 1.0
+                            return self.compute_expression()
                         else:
-                            self.set_special_response(bead_val)
+                            is_match, bead_val = self.active_value_type.match_value(bead)
+                            if is_match:
+                                return self.set_val_and_compute(bead_val)
+                            else:
+                                self.set_special_response(bead_val)
 
         if self.is_activated() and self.active_value_type:
             # if nothing matched explicitly and node is activated

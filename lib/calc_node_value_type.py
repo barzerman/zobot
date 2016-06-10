@@ -89,7 +89,7 @@ class NodeValueTypeNumber(NodeValueType):
             return False, None
 
     def default_question_prefix(self):
-        return 'What is'
+        return 'What is your'
 
 class NodeValueTypeYesNo(NodeValueType):
     node_value_type = 'bool'

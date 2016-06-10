@@ -1,0 +1,95 @@
+{
+	"facts":[
+		{
+			"node_id": "flu",
+			"operator": "AND",
+			"node_type": "composite",
+			"facts": ["node.high_temperature", "node.headache"],
+			"text": "You have a flu. Please visit your doctor"
+		},
+		{
+			"node_id": "911",
+			"operator": "AND",
+			"node_type": "composite",
+			"facts": ["node.high_pressure", "node.high_pulse", "node.low_temperature"],
+			"text": "Please call 911"
+		},
+	    {
+	        "node_type": "entity",
+	        "node_id": "node.headache",
+	        "data": {
+	            "class": 459,
+	            "subclass": 3,
+	            "id": "HEADACHE",
+	            "name": "headache"
+	        }
+	    },
+	    {
+	        "node_type": "entity",
+	        "node_id": "node.high_temperature",
+	        "data": {
+	            "class": 459,
+	            "subclass": 9,
+	            "id": "temperature",
+	            "name": "temperature",
+	            "expression": {"op": ">", "values": 200},
+	            "value_type": {
+	                "type": "number",
+	                "lo": 50,
+	                "hi": 350
+	            }       
+	        }
+	    },
+	    {
+	        "node_type": "entity",
+	        "node_id": "node.low_temperature",
+	        "data": {
+	            "class": 459,
+	            "subclass": 9,
+	            "id": "temperature",
+	            "name": "temperature",
+	            "expression": {"op": "<=", "values": 200},
+	            "value_type": {
+	                "type": "number",
+	                "lo": 50,
+	                "hi": 350
+	            }       
+	        }
+	    },
+	    {
+	        "node_type": "entity",
+	        "node_id": "node.high_pressure",
+	        "data": {
+	            "class": 459,
+	            "subclass": 9,
+	            "id": "pressure",
+	            "name": "blood pressure",
+	            "expression": {"op": ">", "values": 120},
+	            "value_type": {
+	                "type": "number",
+	                "lo": 50,
+	                "hi": 350
+	            }    
+	        }
+	    },
+	    {
+	        "node_type": "entity",
+	        "node_id": "node.high_pulse",
+	        "data": {
+	            "class": 459,
+	            "subclass": 9,
+	            "id": "pulse",
+	            "name": "pulse",
+	            "expression": {"op": ">", "values": 100},
+	            "value_type": {
+	                "type": "number",
+	                "lo": 50,
+	                "hi": 150
+	            }
+	        }
+	    }
+	],
+	"terminals": [
+		"flu", "911"
+	]
+}

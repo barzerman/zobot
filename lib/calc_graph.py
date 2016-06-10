@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, missing-docstring, invalid-name, superfluous-parens
 """ core calc graph objects """
 import sys # pylint: disable=unused-import
+import cg_index
 
 
 class NodeValueNotSet(Exception):
@@ -307,6 +308,7 @@ class CG(object):
         """
         self.nodes = dict()
         self.root = CGNode()
+        self.index = cg_index.Index()
         self.init_from_data(node_data, self.root)
         if graph_data:
             self.bot_name = graph_data.get('name', 'Zobot')

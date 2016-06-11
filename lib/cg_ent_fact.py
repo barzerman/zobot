@@ -1,10 +1,11 @@
 """ simple entity based fact node implementation """
-
+# pylint: disable=invalid-name,empty-docstring,missing-docstring,too-many-branches,too-many-nested-blocks
+# pylint: disable=redefined-variable-type
+import sys
 from functools import partial
 from lib.barzer import barzer_objects
 from lib import calc_graph, calc_node_value_type
 from lib import barzer
-
 
 class CompareExpression(object):
     """ arithmetic entity value expression """
@@ -36,8 +37,6 @@ class CompareExpression(object):
 
 class CGEntityNode(calc_graph.CGNode):
     """ """
-    # pylint: disable=too-many-instance-attributes
-
     node_type_id = 'entity'
 
     def __init__(
@@ -69,7 +68,7 @@ class CGEntityNode(calc_graph.CGNode):
             expression = data.get('expression')
             self.expression = CompareExpression(
                 expression) if expression else None
-            self.question_prefix = data.get('question prefix')
+            self.question_prefix = data.get('q_prefix')
         else:
             self.expression = None
 
@@ -77,7 +76,7 @@ class CGEntityNode(calc_graph.CGNode):
             if self.expression:
                 self.value_type = calc_node_value_type.NodeValueTypeNumber()
             else:
-                self.value_type = calc_node_value_type.NodeValueTypeYesNo() # pylint: disable=redefined-variable-type
+                self.value_type = calc_node_value_type.NodeValueTypeYesNo()
 
         self.question_prefix = self.value_type.default_question_prefix()
         self.ent_question = ent_question
@@ -108,7 +107,7 @@ class CGEntityNode(calc_graph.CGNode):
 
     def is_ent_val_ready(self):
         """ True if we have entity value with high confidence """
-        return self.ent_value and self.confidence > 0.5
+        return self.ent_value is not None and self.confidence > 0.5
 
     def get_bot_response(self, beads=None):
         if self.special_response:

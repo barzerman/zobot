@@ -1,4 +1,4 @@
-# pylint: disable=empty-docstring, invalid-name, missing-docstring
+# pylint: disable=empty-docstring, invalid-name, missing-docstring,too-many-branches
 import re
 import sys
 import config
@@ -46,7 +46,7 @@ class NodeValueType(object):
         else:
             return False, None
 
-    def default_question_prefix(self):
+    def default_question_prefix(self): #pylint: disable=no-self-use
         return None
 
 class NodeValueTypeString(NodeValueType):
@@ -94,7 +94,7 @@ class NodeValueTypeString(NodeValueType):
                     yield beads[lo:hi]
                 lo = hi
 
-    def concat_beads(self, beads):
+    def concat_beads(self, beads): #pylint: disable=no-self-use
         if len(beads) == 1:
             return beads[0].value_str()
         else:
@@ -210,6 +210,7 @@ def make_value_type(value_type_data):
     if not value_type_data:
         return None
     args = {}
+
     if isinstance(value_type_data, str):
         type_name = value_type_data
     elif isinstance(value_type_data, dict):

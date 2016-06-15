@@ -1,7 +1,7 @@
 """ simple entity based fact node implementation """
 # pylint: disable=invalid-name,empty-docstring,missing-docstring,too-many-branches,too-many-nested-blocks
 # pylint: disable=redefined-variable-type,line-too-long
-# import sys
+import sys # pylint: disable=unused-import
 from functools import partial
 from lib.barzer import barzer_objects
 from lib import calc_graph, calc_node_value_type
@@ -167,6 +167,9 @@ class CGEntityNode(calc_graph.CGNode):
             bool(if computation could be completed)
         """
         is_match, bead_val, check_singles = self.active_value_type.match_all_beads(beads)
+        if is_match:
+            return self.set_val_and_compute(bead_val)
+
         if check_singles:
             for bead in beads:
                 if isinstance(bead, (barzer_objects.EntityBase)):

@@ -37,4 +37,5 @@ class Runner(object):
             x = self.cg.step(line)
             print >> sys.stderr, x
 
-        print >> sys.stderr, self.cg.bye()
+        nodes = {'accumulated': {k: v.ent_value for k, v in self.cg.nodes.iteritems()}}
+        print >> sys.stderr, json.dumps(nodes, indent=4), 'bot says:', self.cg.bye()

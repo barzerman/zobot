@@ -1,0 +1,15 @@
+[
+    {
+        "nodetype": "entity",
+        "node_id": "node.first_name",
+        "data": {
+            "class": 459,
+            "subclass": 7,
+            "id": "FIRST_NAME",
+            "name": "first name",
+            "value_type": {
+                "type": "string"
+            }       
+        }
+    }
+]

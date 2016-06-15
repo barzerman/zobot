@@ -1,6 +1,6 @@
 # pylint: disable=empty-docstring, invalid-name, missing-docstring,too-many-branches
 import re
-import sys
+import sys # pylint: disable=unused-import
 import config
 from lib.barzer import barzer_objects
 
@@ -26,7 +26,7 @@ class NodeValueType(object):
     def as_dict(self):
         return {'type': getattr(self, 'type', None)}
 
-    def match_all_beads(self, beads): # pylint: disable=no-self-use
+    def match_all_beads(self, beads): # pylint: disable=no-self-use, unused-argument
         """ for some types and in some cases it's possible to match
         given a list of beads
         Returns:
@@ -53,6 +53,7 @@ class NodeValueTypeString(NodeValueType):
     node_value_type = 'string'
     DEFAULT_MAX_BEADS = 128
     DEFAULT_OTHER_TYPES = (
+        barzer_objects.Fluff,
         barzer_objects.Number,
         barzer_objects.Punct)
     DEFAULT_MIN_LEN = 1
@@ -93,6 +94,8 @@ class NodeValueTypeString(NodeValueType):
                 if hi > lo:
                     yield beads[lo:hi]
                 lo = hi
+        if hi >= lo:
+            yield beads[lo:hi+1]
 
     def concat_beads(self, beads): #pylint: disable=no-self-use
         if len(beads) == 1:
@@ -119,6 +122,7 @@ class NodeValueTypeString(NodeValueType):
             s = self.concat_beads(bs)
             if self.validate(s):
                 return (True, s, False)
+
         return self.ALL_BEADS_NOT_MATCHED
 
 class NodeValueTypeNumber(NodeValueType):

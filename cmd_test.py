@@ -1,4 +1,5 @@
-# pylint: disable=unused-import
+# pylint: disable=unused-import,missing-docstring,invalid-name
+from __future__ import absolute_import, division
 import json
 import sys
 from lib import calc_graph
@@ -31,7 +32,7 @@ class Runner(object):
 
     def run(self):
         print >> sys.stderr, self.cg.greeting()
-        while True:
+        while not self.cg.value.is_set():
             line = raw_input('>')
             x = self.cg.step(line)
             print >> sys.stderr, x

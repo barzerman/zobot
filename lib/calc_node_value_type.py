@@ -1,4 +1,5 @@
-# pylint: disable=empty-docstring, invalid-name, missing-docstring
+# pylint: disable=empty-docstring, invalid-name, missing-docstring,too-many-branches
+import re
 import sys
 import config
 from lib.barzer import barzer_objects
@@ -15,12 +16,26 @@ class NodeValueTypeMeta(type):
 
 class NodeValueType(object):
     __metaclass__ = NodeValueTypeMeta
+    ALL_BEADS_NOT_MATCHED = (False, None, False)
+    ALL_BEADS_NOT_INELIGIBLE = (False, None, True)
+
     def __init__(self, name=None, **kwargs):  # pylint: disable=unused-argument
         if name:
             self.type = barzer_objects.BeadFactory.get_type_by_name(name)
 
     def as_dict(self):
         return {'type': getattr(self, 'type', None)}
+
+    def match_all_beads(self, beads): # pylint: disable=no-self-use
+        """ for some types and in some cases it's possible to match
+        given a list of beads
+        Returns:
+            tuple:
+                matched (boolean) - whether match occured
+                matched_value (bead) - imnterpreted matched value
+                single_eligible (bool) - whether individual beads should be matched
+        """
+        return self.ALL_BEADS_NOT_INELIGIBLE
 
     def match_value(self, bead):
         """ returns a tuple:
@@ -31,8 +46,80 @@ class NodeValueType(object):
         else:
             return False, None
 
-    def default_question_prefix(self):
+    def default_question_prefix(self): #pylint: disable=no-self-use
         return None
+
+class NodeValueTypeString(NodeValueType):
+    node_value_type = 'string'
+    DEFAULT_MAX_BEADS = 128
+    DEFAULT_OTHER_TYPES = (
+        barzer_objects.Number,
+        barzer_objects.Punct)
+    DEFAULT_MIN_LEN = 1
+    DEFAULT_MAX_LEN = 64
+
+    def __init__(
+            self,
+            max_beads=None,
+            other_types=None,
+            pattern=None,
+            concat=True,
+            min_len=None,
+            max_len=None,
+            **kwargs
+    ): # pylint: disable=unused-argument
+        """ numeric value type.
+        Args:
+             max_beads (Number) - max number of beads to match
+             other_types (list()) - optional list of non Token types to treat as tokens
+             pattern (regex string) - optional regex to use on the resulting string
+             concat (boolean) when true consecutive tokens will be concatenated
+        """
+        super(NodeValueTypeString, self).__init__()
+        self.concat = concat
+        self.max_beads = max_beads or self.DEFAULT_MAX_BEADS
+        self.min_len = self.min_len or self.DEFAULT_MIN_LEN
+        self.max_len = self.min_len or self.DEFAULT_MAX_LEN
+        self.pattern = re.compile(pattern) if pattern else None
+
+    def _yield_candidate_strings(self, beads):
+        lo, hi = 0, 0
+        for hi, b in enumerate(beads):
+            if (isinstance(b, barzer_objects.Token) or
+                    any(isinstance(b, self.DEFAULT_OTHER_TYPES))):
+                if not self.concat:
+                    yield [b]
+            else:
+                if hi > lo:
+                    yield beads[lo:hi]
+                lo = hi
+
+    def concat_beads(self, beads): #pylint: disable=no-self-use
+        if len(beads) == 1:
+            return beads[0].value_str()
+        else:
+            return ''.join(
+                x if isinstance(
+                    x, barzer_objects.Punct) else str(x.value)+' ' for x in beads
+            ).strip()
+
+    def validate(self, s):
+        """ validates string """
+        if self.pattern:
+            return self.pattern.match(s)
+        else:
+            return self.min_len <= len(s) < self.max_len
+
+    def match_all_beads(self, beads):
+        """ returns a tuple (see base class) """
+        if len(beads) > self.max_beads:
+            return self.ALL_BEADS_NOT_MATCHED
+
+        for bs in self._yield_candidate_strings(beads):
+            s = self.concat_beads(bs)
+            if self.validate(s):
+                return (True, s, False)
+        return self.ALL_BEADS_NOT_MATCHED
 
 class NodeValueTypeNumber(NodeValueType):
     node_value_type = 'number'
@@ -89,7 +176,7 @@ class NodeValueTypeNumber(NodeValueType):
             return False, None
 
     def default_question_prefix(self):
-        return 'What is'
+        return 'What is the'
 
 class NodeValueTypeYesNo(NodeValueType):
     node_value_type = 'bool'
@@ -112,7 +199,7 @@ class NodeValueTypeYesNo(NodeValueType):
         return False, None
 
     def default_question_prefix(self):
-        return 'Do you have'
+        return 'Do you have a'
 
 def make_value_type(value_type_data):
     """ creates a value type object from value_type_data
@@ -123,6 +210,7 @@ def make_value_type(value_type_data):
     if not value_type_data:
         return None
     args = {}
+
     if isinstance(value_type_data, str):
         type_name = value_type_data
     elif isinstance(value_type_data, dict):

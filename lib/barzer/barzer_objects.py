@@ -39,8 +39,7 @@ class Token(ValueBead):
     type_name = 'token'
 
     def value_str(self):
-        return "'{}'".format(str(self.value))
-
+        return "{}".format(str(self.value))
 
 class Fluff(Token):
     type_name = 'fluff'

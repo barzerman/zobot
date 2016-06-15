@@ -176,7 +176,7 @@ class NodeValueTypeNumber(NodeValueType):
             return False, None
 
     def default_question_prefix(self):
-        return 'What is'
+        return 'What is the'
 
 class NodeValueTypeYesNo(NodeValueType):
     node_value_type = 'bool'
@@ -199,7 +199,7 @@ class NodeValueTypeYesNo(NodeValueType):
         return False, None
 
     def default_question_prefix(self):
-        return 'Do you have'
+        return 'Do you have a'
 
 def make_value_type(value_type_data):
     """ creates a value type object from value_type_data

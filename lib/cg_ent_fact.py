@@ -1,7 +1,7 @@
 """ simple entity based fact node implementation """
 # pylint: disable=invalid-name,empty-docstring,missing-docstring,too-many-branches,too-many-nested-blocks
-# pylint: disable=redefined-variable-type
-import sys
+# pylint: disable=redefined-variable-type,line-too-long
+# import sys
 from functools import partial
 from lib.barzer import barzer_objects
 from lib import calc_graph, calc_node_value_type
@@ -200,14 +200,24 @@ class CGEntityNode(calc_graph.CGNode):
 
     def set_special_response(self, bead_val):
         if bead_val is not None:
-            if isinstance(bead_val, list) and len(bead_val) > 1:
-                self.special_response = 'None of these values seem valid {}. {}'.format(
-                    ','.join(str(x) for x in bead_val),
-                    self.get_pure_question())
+            if isinstance(bead_val, list):
+                if len(bead_val) > 1:
+                    self.special_response = 'None of these values seem valid {}. {}'.format(
+                        ','.join(str(x) for x in bead_val),
+                        self.get_pure_question())
+                    return
+                else:
+                    # one value returned
+                    val = bead_val[0]
             else:
-                self.special_response = '{} is not valid. {}'.format(
-                    bead_val[0] if isinstance(bead_val, list) else bead_val,
-                    self.get_pure_question())
+                val = bead_val
+
+            val_str = 'Sorry, {} is not valid'.format(
+                str(val)) if val else 'Didn\'t get that'
+
+            self.special_response = '{}. {}'.format(
+                val_str,
+                self.get_pure_question())
 
     def step(self, input_val=None):
         """ """

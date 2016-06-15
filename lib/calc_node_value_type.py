@@ -47,7 +47,7 @@ class NodeValueType(object):
             return False, None
 
     def default_question_prefix(self): #pylint: disable=no-self-use
-        return None
+        return 'What is your'
 
 class NodeValueTypeString(NodeValueType):
     node_value_type = 'string'
@@ -78,8 +78,8 @@ class NodeValueTypeString(NodeValueType):
         super(NodeValueTypeString, self).__init__()
         self.concat = concat
         self.max_beads = max_beads or self.DEFAULT_MAX_BEADS
-        self.min_len = self.min_len or self.DEFAULT_MIN_LEN
-        self.max_len = self.min_len or self.DEFAULT_MAX_LEN
+        self.min_len = min_len or self.DEFAULT_MIN_LEN
+        self.max_len = max_len or self.DEFAULT_MAX_LEN
         self.pattern = re.compile(pattern) if pattern else None
 
     def _yield_candidate_strings(self, beads):

@@ -1,8 +1,9 @@
 # pylint: disable=empty-docstring, invalid-name, missing-docstring,too-many-branches
 import re
-import sys # pylint: disable=unused-import
+import sys  # pylint: disable=unused-import
 import config
 from lib.barzer import barzer_objects
+
 
 class NodeValueTypeMeta(type):
     def __init__(cls, name, bases, dct):
@@ -13,6 +14,7 @@ class NodeValueTypeMeta(type):
                 getattr(cls, 'node_value_type', name.lower())
             ] = cls
         super(NodeValueTypeMeta, cls).__init__(name, bases, dct)
+
 
 class NodeValueType(object):
     __metaclass__ = NodeValueTypeMeta
@@ -26,7 +28,7 @@ class NodeValueType(object):
     def as_dict(self):
         return {'type': getattr(self, 'type', None)}
 
-    def match_all_beads(self, beads): # pylint: disable=no-self-use, unused-argument
+    def match_all_beads(self, beads):  # pylint: disable=no-self-use, unused-argument
         """ for some types and in some cases it's possible to match
         given a list of beads
         Returns:
@@ -46,8 +48,9 @@ class NodeValueType(object):
         else:
             return False, None
 
-    def default_question_prefix(self): #pylint: disable=no-self-use
+    def default_question_prefix(self):  # pylint: disable=no-self-use
         return 'What is your'
+
 
 class NodeValueTypeString(NodeValueType):
     node_value_type = 'string'
@@ -68,7 +71,7 @@ class NodeValueTypeString(NodeValueType):
             min_len=None,
             max_len=None,
             **kwargs
-    ): # pylint: disable=unused-argument
+    ):  # pylint: disable=unused-argument
         """ numeric value type.
         Args:
              max_beads (Number) - max number of beads to match
@@ -95,15 +98,15 @@ class NodeValueTypeString(NodeValueType):
                     yield beads[lo:hi]
                 lo = hi
         if hi >= lo:
-            yield beads[lo:hi+1]
+            yield beads[lo:hi + 1]
 
-    def concat_beads(self, beads): #pylint: disable=no-self-use
+    def concat_beads(self, beads):  # pylint: disable=no-self-use
         if len(beads) == 1:
             return beads[0].value_str()
         else:
             return ''.join(
                 x if isinstance(
-                    x, barzer_objects.Punct) else str(x.value)+' ' for x in beads
+                    x, barzer_objects.Punct) else str(x.value) + ' ' for x in beads
             ).strip()
 
     def validate(self, s):
@@ -125,9 +128,11 @@ class NodeValueTypeString(NodeValueType):
 
         return self.ALL_BEADS_NOT_MATCHED
 
+
 class NodeValueTypeNumber(NodeValueType):
     node_value_type = 'number'
-    def __init__(self, lo=None, hi=None, **kwargs): # pylint: disable=unused-argument
+
+    def __init__(self, lo=None, hi=None, **kwargs):  # pylint: disable=unused-argument
         """ numeric value type.
         Args:
              lo (Number) - optional smallest allowed value
@@ -180,11 +185,13 @@ class NodeValueTypeNumber(NodeValueType):
             return False, None
 
     def default_question_prefix(self):
-        return 'What is the'
+        return 'What is your'
+
 
 class NodeValueTypeYesNo(NodeValueType):
     node_value_type = 'bool'
-    def __init__(self, **kwargs): # pylint: disable=unused-argument
+
+    def __init__(self, **kwargs):  # pylint: disable=unused-argument
         """
         Yes/No value type
         """
@@ -205,6 +212,7 @@ class NodeValueTypeYesNo(NodeValueType):
     def default_question_prefix(self):
         return 'Do you have a'
 
+
 def make_value_type(value_type_data):
     """ creates a value type object from value_type_data
     Args:
@@ -221,5 +229,5 @@ def make_value_type(value_type_data):
         type_name = value_type_data['type']
         args = {k: v for k, v in value_type_data.iteritems() if k != 'type'}
 
-    the_type = NodeValueType.node_val_type_registry.get(type_name) # pylint: disable=no-member
+    the_type = NodeValueType.node_val_type_registry.get(type_name)  # pylint: disable=no-member
     return the_type(**args) if the_type else None

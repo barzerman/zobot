@@ -3,7 +3,8 @@ from flask import request, abort
 import json
 import uuid
 from glob import glob
-from lib import convo_fact, calc_graph
+from lib import calc_graph
+from lib import convo_fact
 
 
 class ZobotServer(object):
@@ -24,11 +25,7 @@ class ZobotServer(object):
                 token = external_token
             else:
                 token = str(uuid.uuid4())
-            if protocol_name == 'test_entities':
-                cg = calc_graph.CG(self.protocol_data[protocol_name])
-            else:
-                cg = calc_graph.CG()
-                cg.root = convo_fact.ConvoProtocol(self.protocol_data[protocol_name])
+            cg = calc_graph.CG(self.protocol_data[protocol_name])
             self.conversations[token] = cg
             return token
         else:

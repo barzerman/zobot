@@ -93,8 +93,14 @@ class CGEntityNode(calc_graph.CGNode):
                 result[attr] = str(getattr(self, attr))
         return result
 
+    def __str__(self):
+        return super(CGEntityNode, self).__str__() + ' (' + str(self.ent_value) + ')'
+
     def is_activated(self):
         return self.activated
+
+    def ent_id(self):
+        return self.ent.ent_id()
 
     def deactivate(self):
         self.activated = False
@@ -185,6 +191,7 @@ class CGEntityNode(calc_graph.CGNode):
                                 self.set_special_response(bead_val)
 
         if self.is_activated() and self.active_value_type:
+            print self.ent_id()
             # if nothing matched explicitly and node is activated
             prospect_values = list()
             for bead in beads:

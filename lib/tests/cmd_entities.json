@@ -1,5 +1,6 @@
 [
     {
+        "nodetype": "entity",
         "node_id": "node.headache",
         "data": {
             "class": 459,
@@ -10,7 +11,7 @@
     },
     {
         "nodetype": "entity",
-        "node_id": "node.temperature",
+        "node_id": "node.high_temperature",
         "data": {
             "class": 459,
             "subclass": 9,

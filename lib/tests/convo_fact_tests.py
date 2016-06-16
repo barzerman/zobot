@@ -7,34 +7,41 @@ from lib import calc_graph, convo_fact
 pp = pprint.PrettyPrinter()
 
 
-class ConvoFactTestCase(unittest.TestCase):
+class ConvoTestCase(unittest.TestCase):
 
     def test_flu(self):
-        data = json.load(open('lib/tests/test.json'))
+        pp = pprint.PrettyPrinter()
+        data = json.load(open('lib/tests/test2.json'))
         convo_protocol = convo_fact.ConvoProtocol(data)
         cg = calc_graph.CG()
         cg.root = convo_protocol
-
-        print cg.root.step()
-        print cg.root.step('I have a temperature 40')
         pp.pprint(cg.root.to_dict())
-        resp = cg.root.step('Yes, I have a headache')
-        self.assertTrue('flu' in resp.text)
-        print resp.text
+
+        print cg.step()
+        print cg.step('220')
+        pp.pprint(cg.root.to_dict())
+        resp = cg.step('yes')
+        self.assertTrue('flu' in resp[1].text)
+        pp.pprint(cg.root.to_dict())
 
     def test_911(self):
-        data = json.load(open('lib/tests/test.json'))
+        pp = pprint.PrettyPrinter()
+        data = json.load(open('lib/tests/test2.json'))
         convo_protocol = convo_fact.ConvoProtocol(data)
         cg = calc_graph.CG()
         cg.root = convo_protocol
+        pp.pprint(cg.root.to_dict())
 
-        print cg.root.step()
-        print cg.root.step('I have a temperature 34')
+        print cg.step()
+        print cg.step('190')
+        print cg.root.to_dict()
+        print cg.root.index
+        resp = cg.step('140')
+        print resp
         pp.pprint(cg.root.to_dict())
-        resp = cg.root.step('My blood pressure is 80')
-        pp.pprint(cg.root.to_dict())
-        self.assertTrue('911' in resp.text)
-        print resp.text
+        resp = cg.step('140')
+        print resp
+        self.assertTrue('911' in resp[1].text)
 
 
 if __name__ == '__main__':

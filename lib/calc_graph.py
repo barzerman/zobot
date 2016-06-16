@@ -293,12 +293,17 @@ class CGNode(object):
 
         return ret
 
+
 class CGNodeBasic(CGNode):
     """ plain numeric node """
     node_type_id = 'basic'
 
+
 class CG(object):
     """ calculation dag """
+    STATE_INIT = 0
+    STATE_ACTIVE = 1
+
     def __init__(self, node_data=None, graph_data=None):
         """
         Args:
@@ -313,6 +318,16 @@ class CG(object):
         else:
             self.bot_name = 'Zobot'
         self.farewell = "Good bye"
+        self.state = self.STATE_INIT
+
+    def activate(self):
+        self.state = self.STATE_ACTIVE
+
+    def deactivate(self):
+        self.state = self.STATE_INIT
+
+    def is_active(self):
+        return self.state == self.STATE_ACTIVE
 
     def bye(self):
         """ returns bot's farewell """
@@ -362,5 +377,12 @@ class CG(object):
         return self.root.value
 
     def step(self, input_val=None):
-        step_response = self.root.step(input_val=input_val)
-        return self.root.value, step_response
+        if not self.is_active():
+            self.activate()
+            return self.root.value, CGStepResponse(text=self.greeting())
+        else:
+            step_response = self.root.step(input_val=input_val)
+            if self.root.is_set():
+                step_response.text += '\n' + self.bye()
+                self.deactivate()
+            return self.root.value, step_response

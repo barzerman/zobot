@@ -292,6 +292,7 @@ class ConvoProtocol(calc_graph.CGNode):
 
         for _id, t in self.terminals.items():
             if t.value.is_true():
+                self.value.set_val(True)
                 return calc_graph.CGStepResponse(
                     text=t.text
                 )

@@ -1,10 +1,11 @@
 """ simple entity based fact node implementation """
-
+# pylint: disable=invalid-name,empty-docstring,missing-docstring,too-many-branches,too-many-nested-blocks
+# pylint: disable=redefined-variable-type,line-too-long
+import sys # pylint: disable=unused-import
 from functools import partial
 from lib.barzer import barzer_objects
 from lib import calc_graph, calc_node_value_type
 from lib import barzer
-
 
 class CompareExpression(object):
     """ arithmetic entity value expression """
@@ -34,11 +35,8 @@ class CompareExpression(object):
         self.func = partial(
             self.router[data.get('op', '=')], data.get('values'))
 
-
 class CGEntityNode(calc_graph.CGNode):
     """ """
-    # pylint: disable=too-many-instance-attributes
-
     node_type_id = 'entity'
 
     def __init__(
@@ -70,7 +68,7 @@ class CGEntityNode(calc_graph.CGNode):
             expression = data.get('expression')
             self.expression = CompareExpression(
                 expression) if expression else None
-            self.question_prefix = data.get('question prefix')
+            self.question_prefix = data.get('q_prefix')
         else:
             self.expression = None
 
@@ -78,7 +76,7 @@ class CGEntityNode(calc_graph.CGNode):
             if self.expression:
                 self.value_type = calc_node_value_type.NodeValueTypeNumber()
             else:
-                self.value_type = calc_node_value_type.NodeValueTypeYesNo() # pylint: disable=redefined-variable-type
+                self.value_type = calc_node_value_type.NodeValueTypeYesNo()
 
         self.question_prefix = self.value_type.default_question_prefix()
         self.ent_question = ent_question
@@ -112,7 +110,7 @@ class CGEntityNode(calc_graph.CGNode):
 
     def is_ent_val_ready(self):
         """ True if we have entity value with high confidence """
-        return self.ent_value and self.confidence > 0.5
+        return self.ent_value is not None and self.confidence > 0.5
 
     def get_bot_response(self, beads=None):
         if self.special_response:
@@ -171,18 +169,23 @@ class CGEntityNode(calc_graph.CGNode):
         Returns:
             bool(if computation could be completed)
         """
-        for bead in beads:
-            if isinstance(bead, (barzer_objects.EntityBase)):
-                if bead.match_ent(self.ent):
-                    if not self.expression:
-                        self.ent_value, self.confidence = True, 1.0
-                        return self.compute_expression()
-                    else:
-                        is_match, bead_val = self.active_value_type.match_value(bead)
-                        if is_match:
-                            return self.set_val_and_compute(bead_val)
+        is_match, bead_val, check_singles = self.active_value_type.match_all_beads(beads)
+        if is_match:
+            return self.set_val_and_compute(bead_val)
+
+        if check_singles:
+            for bead in beads:
+                if isinstance(bead, (barzer_objects.EntityBase)):
+                    if bead.match_ent(self.ent):
+                        if not self.expression:
+                            self.ent_value, self.confidence = True, 1.0
+                            return self.compute_expression()
                         else:
-                            self.set_special_response(bead_val)
+                            is_match, bead_val = self.active_value_type.match_value(bead)
+                            if is_match:
+                                return self.set_val_and_compute(bead_val)
+                            else:
+                                self.set_special_response(bead_val)
 
         if self.is_activated() and self.active_value_type:
             print self.ent_id()
@@ -204,14 +207,24 @@ class CGEntityNode(calc_graph.CGNode):
 
     def set_special_response(self, bead_val):
         if bead_val is not None:
-            if isinstance(bead_val, list) and len(bead_val) > 1:
-                self.special_response = 'None of these values seem valid {}. {}'.format(
-                    ','.join(str(x) for x in bead_val),
-                    self.get_pure_question())
+            if isinstance(bead_val, list):
+                if len(bead_val) > 1:
+                    self.special_response = 'None of these values seem valid {}. {}'.format(
+                        ','.join(str(x) for x in bead_val),
+                        self.get_pure_question())
+                    return
+                else:
+                    # one value returned
+                    val = bead_val[0]
             else:
-                self.special_response = '{} is not valid. {}'.format(
-                    bead_val[0] if isinstance(bead_val, list) else bead_val,
-                    self.get_pure_question())
+                val = bead_val
+
+            val_str = 'Sorry, {} is not valid'.format(
+                str(val)) if val else 'Didn\'t get that'
+
+            self.special_response = '{}. {}'.format(
+                val_str,
+                self.get_pure_question())
 
     def step(self, input_val=None):
         """ """

@@ -61,7 +61,6 @@ class CgEntFact(unittest.TestCase):
         print >> sys.stderr, "DEBUG test_value_type after step >>>", val, ret, "<<<"
         temp_val = 100
         val, ret = cg.step(str(temp_val))
-        print >> sys.stderr, "SHIT >>>", type(val), type(val.value), "<<<<"
         self.assertFalse(val.value)
         self.assertEquals(temp_val, cg.nodes['node.temperature'].ent_value)
         print >> sys.stderr, "DEBUG test_value_type >>>", val.value, ret, cg.nodes['node.temperature'].ent_value, "<<<"

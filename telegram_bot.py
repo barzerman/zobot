@@ -12,7 +12,8 @@ bot = telebot.TeleBot("208359220:AAGAXDsRRiFzaPjwSztv6sH8Httqqg660ow")
 zobot = ZobotClient(host=options.domain, port=options.port)
 
 available_protocols = zobot.get_available_protocols()
-protocols_msg = '/n'.join(['/' + x for x in available_protocols])
+print available_protocols
+protocols_msg = '\n'.join(['/' + x for x in available_protocols])
 
 
 @bot.message_handler(commands=['start'])
@@ -24,11 +25,8 @@ def send_welcome(message):
 @bot.message_handler(commands=available_protocols)
 def init_protocol(message):
     print message.text
-    try:
-        zobot.init_from_external(message.text.split('/')[-1], 'telegram:' + str(message.chat.id))
-        bot.send_message(message.chat.id, zobot.say())
-    except:
-        bot.send_message(message.chat.id, 'Can not initialize protocol')
+    zobot.init_from_external(message.text.split('/')[-1], 'telegram:' + str(message.chat.id))
+    bot.send_message(message.chat.id, zobot.say())
 
 
 @bot.message_handler(func=lambda message: True)

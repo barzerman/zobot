@@ -1,4 +1,5 @@
-# pylint: disable=unused-import
+# pylint: disable=unused-import,missing-docstring,invalid-name
+from __future__ import absolute_import, division
 import json
 import sys
 from lib import calc_graph
@@ -31,9 +32,10 @@ class Runner(object):
 
     def run(self):
         print >> sys.stderr, self.cg.greeting()
-        while True:
+        while not self.cg.value.is_set():
             line = raw_input('>')
             x = self.cg.step(line)
             print >> sys.stderr, x
 
-        print >> sys.stderr, self.cg.bye()
+        nodes = {'accumulated': {k: v.ent_value for k, v in self.cg.nodes.iteritems()}}
+        print >> sys.stderr, json.dumps(nodes, indent=4), 'bot says:', self.cg.bye()

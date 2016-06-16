@@ -7,7 +7,7 @@ from lib import convo_fact, calc_graph
 
 
 class ZobotServer(object):
-    def __init__(self, protocols_path='lib/tests/'):
+    def __init__(self, protocols_path='protocols/'):
         self.protocol_data = {}
         self.conversations = {}
 
@@ -24,8 +24,11 @@ class ZobotServer(object):
                 token = external_token
             else:
                 token = str(uuid.uuid4())
-            cg = calc_graph.CG()
-            cg.root = convo_fact.ConvoProtocol(self.protocol_data[protocol_name])
+            if protocol_name == 'test_entities':
+                cg = calc_graph.CG(self.protocol_data[protocol_name])
+            else:
+                cg = calc_graph.CG()
+                cg.root = convo_fact.ConvoProtocol(self.protocol_data[protocol_name])
             self.conversations[token] = cg
             return token
         else:
@@ -69,10 +72,10 @@ def login_with_token(protocol, external_token):
 
 @app.route("/convo/<token>/say")
 def say(token):
-    try:
-        return zobot.say(token, request.args.get('input', ''))
-    except:
-        abort(404)
+    # try:
+    return zobot.say(token, request.args.get('input', ''))
+    # except:
+    #     abort(404)
 
 
 @app.route("/convo/<token>/drop")

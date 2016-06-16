@@ -28,7 +28,7 @@ class RulesSettings(object):
         "scope": "Generic",
         "category": "eng_convo",
         "subclass": 105,
-        "id": "YES",
-        "name": "yes",
+        "id": "NO",
+        "name": "no",
     }
 

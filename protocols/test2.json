@@ -1,4 +1,7 @@
 {
+    "node_type": "convo_protocol",
+    "node_id": "test_protocol",
+    "data": {
         "facts":[
             {
                 "node_id": "flu",
@@ -92,4 +95,5 @@
         "terminals": [
             "flu", "911"
         ]
+    }
 }

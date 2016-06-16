@@ -363,8 +363,12 @@ class CG(object):
                 value = data.get('value')
                 n = node_type(op, val_type, value)
 
+            node.set_children([n])
+
             if the_id:
                 self.nodes[the_id] = n
+            if data.get('node_type') == 'convo_protocol':
+                self.nodes.update(n.facts)
 
             children = data.get('children')
             if children:

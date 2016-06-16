@@ -230,6 +230,8 @@ class ConvoCompositeFact(ConvoFact):
 
 
 class ConvoProtocol(calc_graph.CGNode):
+    node_type_id = 'convo_protocol'
+
     FACT_MAP = {
         CompositeFact: ConvoCompositeFact,
         EntityFact: ConvoEntityFact

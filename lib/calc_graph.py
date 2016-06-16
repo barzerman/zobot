@@ -399,12 +399,12 @@ class CG(object):
         return self.root.value
 
     def step(self, input_val=None):
-        if not self.is_active():
-            self.activate()
-            return self.root.value, CGStepResponse(text=self.greeting())
-        else:
-            step_response = self.root.step(input_val=input_val)
+        step_response = self.root.step(input_val=input_val)
+        if self.is_active():
             if self.root.is_set():
                 step_response.text += '\n' + self.bye() + '\n' + json.dumps(self.get_accumulated_node_values(), indent=4)
                 self.deactivate()
             return self.root.value, step_response
+        else:
+            self.activate()
+            return self.root.value, CGStepResponse(text=self.greeting())

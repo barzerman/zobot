@@ -2,6 +2,7 @@
 """ core calc graph objects """
 import sys  # pylint: disable=unused-import
 import cg_index
+import json
 
 
 class NodeValueNotSet(Exception):

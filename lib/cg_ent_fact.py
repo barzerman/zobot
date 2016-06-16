@@ -93,6 +93,9 @@ class CGEntityNode(calc_graph.CGNode):
                 result[attr] = str(getattr(self, attr))
         return result
 
+    def __str__(self):
+        return super(CGEntityNode, self).__str__() + ' (' + str(self.ent_value) + ')'
+
     def is_activated(self):
         return self.activated
 

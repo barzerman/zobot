@@ -154,6 +154,9 @@ class ConvoEntityFact(ConvoFact):
     def ent_id(self):
         return self.ent.ent_id()
 
+    def __str__(self):
+        return str(self.ent)
+
     def step(self, input_val=None):
         resp = self.ent.step(input_val)
         self.update(value=self.ent.value, confidence=self.ent.confidence)
@@ -268,6 +271,13 @@ class ConvoProtocol(calc_graph.CGNode):
                 self.facts[_type].add(self.facts[f.id])
 
         return self.facts[f.id]
+
+    def get_nodes(self):
+        res = {}
+        for k, v in self.facts.iteritems():
+            if isinstance(v, calc_graph.CGNode):
+                res[k] = v
+        return res
 
     def add_fact_to_update(self, fact):
         if fact.id not in self.visited_facts:

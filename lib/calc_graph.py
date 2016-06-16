@@ -218,6 +218,12 @@ class CGNode(object):
             result['children'] = [c.as_dict() for c in self.children]
         return result
 
+    def __str__(self):
+        if self.is_set():
+            return str(self.value.value)
+        else:
+            return 'NOT SET'
+
     def set_children(self, children):
         self.children = children
         self.child_iter = CGOperator.arg_iterator()(self.children)
@@ -368,7 +374,7 @@ class CG(object):
             if the_id:
                 self.nodes[the_id] = n
             if data.get('node_type') == 'convo_protocol':
-                self.nodes.update(n.facts)
+                self.nodes.update(n.get_nodes())
 
             children = data.get('children')
             if children:
@@ -381,6 +387,13 @@ class CG(object):
     def as_dict(self):
         return self.root.as_dict()
 
+    def get_accumulated_node_values(self):
+        res = {}
+        for node_id, node in self.nodes.iteritems():
+            if node.is_set():
+                res[node_id] = str(node)
+        return res
+
     @property
     def value(self):
         return self.root.value
@@ -392,6 +405,6 @@ class CG(object):
         else:
             step_response = self.root.step(input_val=input_val)
             if self.root.is_set():
-                step_response.text += '\n' + self.bye()
+                step_response.text += '\n' + self.bye() + '\n' + json.dumps(self.get_accumulated_node_values(), indent=4)
                 self.deactivate()
             return self.root.value, step_response

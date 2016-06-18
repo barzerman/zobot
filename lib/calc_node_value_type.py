@@ -18,8 +18,11 @@ class NodeValueTypeMeta(type):
 
 class NodeValueType(object):
     __metaclass__ = NodeValueTypeMeta
+    # all_beads match tuple - third element is a boolean
+    # indicating whether individual bead matches should be
+    # attempted
     ALL_BEADS_NOT_MATCHED = (False, None, False)
-    ALL_BEADS_NOT_INELIGIBLE = (False, None, True)
+    ALL_BEADS_NOT_ELIGIBLE = (False, None, True)
 
     def __init__(self, name=None, **kwargs):  # pylint: disable=unused-argument
         if name:
@@ -37,7 +40,7 @@ class NodeValueType(object):
                 matched_value (bead) - imnterpreted matched value
                 single_eligible (bool) - whether individual beads should be matched
         """
-        return self.ALL_BEADS_NOT_INELIGIBLE
+        return self.ALL_BEADS_NOT_ELIGIBLE
 
     def match_value(self, bead):
         """ returns a tuple:
@@ -208,6 +211,28 @@ class NodeValueTypeYesNo(NodeValueType):
 
         # this is not a yesno value
         return False, None
+
+    def default_question_prefix(self):
+        return 'Do you have a'
+
+class NodeValueTypeEntity(NodeValueType):
+    node_value_type = 'entity'
+
+    def __init__(self, eclass=None, subclass=None, id=None, **kwargs):  # pylint: disable=unused-argument
+        """
+        Entity value type
+        """
+        super(NodeValueTypeEntity, self).__init__()
+        self.eclass = eclass
+        self.subclass = subclass
+        self.id = id
+
+    def match_value(self, bead):
+        return (
+            isinstance(bead, barzer_objects.EntityBase)
+            and
+            bead.match_template(self.eclass, self.subclass, self.id)
+        ), bead
 
     def default_question_prefix(self):
         return 'Do you have a'

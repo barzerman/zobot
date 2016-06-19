@@ -8,7 +8,6 @@ import json
 class NodeValueNotSet(Exception):
     """ attempt to get the not set value"""
 
-
 class CGNodeValue(object):
     """ node value """
     def __init__(self, value=None, val_type=None, is_array=False):
@@ -38,10 +37,10 @@ class CGNodeValue(object):
             delattr(self, 'val_')
 
     def is_true(self):
-        return self.is_set() and self.val_ is True
+        return self.is_set() and getattr(self, 'val_') is True
 
     def is_false(self):
-        return self.is_set() and self.val_ is False
+        return self.is_set() and getattr(self, 'val_') is False
 
     def is_set(self):
         """ when true it's safe to get value by calling `value`"""
@@ -56,7 +55,7 @@ class CGNodeValue(object):
 
     def equal(self, another_cg_value):
         if self.is_set() and another_cg_value.is_set():
-            return self.val_ == another_cg_value.val_
+            return getattr(self, 'val_') == another_cg_value.val_
         else:
             return False
 
@@ -95,7 +94,7 @@ class CGChildIterator(object):
 
 class CGOperator(object):
     """ default operator is a list """
-    op_name = 'LIST'
+    op_name = 'list'
 
     @classmethod
     def static_calc(cls, children=None, input_val=None):  # pylint: disable=unused-argument
@@ -184,14 +183,18 @@ class CGNode(object):
             val_type=None,
             value=None,
             children=None,
-            is_array=False
+            is_array=False,
+            node_id=None,
+            data=None
     ):
         """
         Arguments:
             op (CGOperator)
             val_type (CGNodeValueType)
         """
-        self.op = op
+        data = data or {}
+
+        self.op = op or data.get('op', op)
         self.children = self.value = None
         self.value = CGOperator.init_output_val(
             val_type=val_type,
@@ -200,6 +203,9 @@ class CGNode(object):
         )
         if children:
             self.set_children(children)
+
+        if node_id:
+            self.node_id = node_id
 
     @classmethod
     def get_class_by_node_type_id(cls, node_type_id):
@@ -347,6 +353,20 @@ class CG(object):
     def greeting(self):
         """ returns bot's greeting (initial) """
         return 'Hi I\'m {}. What can I do for you?'.format(self.bot_name)
+
+    @classmethod
+    def make_node_from_data_dict(cls, data):
+        """ given a dictionary for node creation produces a CGNode object subtype
+        Returns:
+            tuple(CGNode subtype)
+        """
+        node_type = CGNode.get_class_by_node_type_id(
+            data.get('node_type', 'entity')
+        )
+        node_id = data.get('node_id')
+        return node_type(
+            data=data.get('data'),
+            node_id=node_id)
 
     def init_from_data(self, data, node, list_node_type=CGNode):
         if isinstance(data, (list, set, frozenset)):

@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring,unused-import,invalid-name,no-self-use
+# pylint: disable=missing-docstring,unused-import,invalid-name,no-self-use, line-too-long
 import unittest
 import sys
 import json

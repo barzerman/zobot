@@ -88,8 +88,8 @@ class OrOperator(calc_graph.CGOperator):
 
 class ConvoFact(calc_graph.CGNode):
 
-    def __init__(self, protocol, fact, parents=None, barzer_svc=None):
-        super(ConvoFact, self).__init__()
+    def __init__(self, protocol, fact, parents=None, barzer_svc=None, graph=None):
+        super(ConvoFact, self).__init__(barzer_svc=barzer_svc, graph=graph)
         self.confidence = 0.5
         self.id = fact.id
         self.question = fact.question
@@ -240,7 +240,7 @@ class ConvoProtocol(calc_graph.CGNode):
         EntityFact: ConvoEntityFact
     }
 
-    def __init__(self, data, barzer_svc=None):
+    def __init__(self, data, barzer_svc=None, graph=None):
         protocol = Protocol(data)
         self.id = 'protocol'
         self.index = cg_index.Index()
@@ -260,6 +260,8 @@ class ConvoProtocol(calc_graph.CGNode):
         self.pq = pqdict.maxpq()
         for t in self.terminals.values():
             self.pq[t] = t.score()
+        if graph:
+            graph.nodes.update(self.get_nodes())
 
     def create_or_update_fact(self, f, parents):
         if f.id in self.facts:

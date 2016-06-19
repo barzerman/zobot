@@ -1,8 +1,9 @@
 # pylint: disable=line-too-long, missing-docstring, invalid-name, superfluous-parens
 """ core calc graph objects """
-import sys  # pylint: disable=unused-import
-import cg_index
+from __future__ import absolute_import, division
 import json
+import sys  # pylint: disable=unused-import
+from lib import cg_index
 
 
 class NodeValueNotSet(Exception):
@@ -185,7 +186,9 @@ class CGNode(object):
             children=None,
             is_array=False,
             node_id=None,
-            data=None
+            data=None,
+            graph=None, # pylint: disable=unused-argument
+            barzer_svc=None # pylint: disable=unused-argument
     ):
         """
         Arguments:
@@ -355,7 +358,7 @@ class CG(object):
         return 'Hi I\'m {}. What can I do for you?'.format(self.bot_name)
 
     @classmethod
-    def make_node_from_data_dict(cls, data):
+    def make_node_from_data_dict(cls, data, graph):
         """ given a dictionary for node creation produces a CGNode object subtype
         Returns:
             tuple(CGNode subtype)
@@ -366,7 +369,8 @@ class CG(object):
         node_id = data.get('node_id')
         return node_type(
             data=data.get('data'),
-            node_id=node_id)
+            node_id=node_id,
+            graph=graph)
 
     def init_from_data(self, data, node, list_node_type=CGNode):
         if isinstance(data, (list, set, frozenset)):
@@ -374,16 +378,16 @@ class CG(object):
                 [self.init_from_data(d, list_node_type()) for d in data]
             )
         elif isinstance(data, dict):
-            node_type = CGNode.get_class_by_node_type_id(
-                data.get('node_type', 'entity')
-            )
             the_id = data.get('id', data.get('node_id'))
             if 'data' in data:
                 node_data = data['data']
-                n = node_type(node_data)
+                n = self.make_node_from_data_dict(data, self)
                 if the_id is None:
                     the_id = node_data.get('node_id')
             else:
+                node_type = CGNode.get_class_by_node_type_id(
+                    data.get('node_type', 'entity')
+                )
                 val_type = data.get('type')
                 op = data.get('op')
                 value = data.get('value')
@@ -393,8 +397,6 @@ class CG(object):
 
             if the_id:
                 self.nodes[the_id] = n
-            if data.get('node_type') == 'convo_protocol':
-                self.nodes.update(n.get_nodes())
 
             children = data.get('children')
             if children:

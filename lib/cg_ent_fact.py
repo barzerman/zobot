@@ -41,7 +41,7 @@ class CGEntityNode(calc_graph.CGNode):
 
     def __init__(
             self, data, expression=None,
-            ent_question=None, barzer_svc=None
+            ent_question=None, barzer_svc=None, graph=None, node_id=None
         ):
         """
         Arguments:
@@ -49,7 +49,7 @@ class CGEntityNode(calc_graph.CGNode):
                 constructor
             expression (arithmetic expression over value)
         """
-        super(CGEntityNode, self).__init__()
+        super(CGEntityNode, self).__init__(graph=graph, node_id=node_id)
         self.activated = False
 
         self.ent = data if isinstance(

@@ -2,6 +2,13 @@
 from __future__ import division, absolute_import
 from collections import namedtuple
 import logging
+from json import JSONEncoder
+
+def _default(self, obj): # pylint: disable=unused-argument
+    return getattr(obj.__class__, "to_json", _default.default)(obj)
+
+_default.default = JSONEncoder().default  # Save unmodified default.
+JSONEncoder.default = _default # replacement
 
 class EntityId(namedtuple('_EntityId', ('eclass', 'subclass', 'id'))):
     """ barzer entity """
@@ -11,7 +18,10 @@ class Bead(object):
     type_name = ""
 
     def __init__(self, data=None):
-        self.origmarkup, self.src = data.get('origmarkup'), data.get('src')
+        if data:
+            self.origmarkup, self.src = data.get('origmarkup'), data.get('src')
+        else:
+            self.origmarkup, self.src = None, None
 
     def value_str(self):  # pylint: disable=no-self-use
         return '<NONE>'
@@ -61,20 +71,40 @@ class EntityBase(Bead):
             self.subclass == self.subclass and  # pylint: disable=no-member
             self.id == ent.id)  # pylint: disable=no-member
 
+    @classmethod
+    def match_by_template(cls, ent_bead, eclass, subclass, entid):
+        """ matches ent_bead against class, subclass, id """
+        if not eclass:
+            return True
+        if eclass != ent_bead.eclass:
+            return False
+        if not subclass:
+            return True
+        if subclass != ent_bead.subclass:
+            return False
+
+        return not entid or entid == ent_bead.id
+
 class Entity(EntityBase):
-    def __init__(self, data):
+    def __init__(self, data=None):
         """
         Arguments:
             data (dict) - dictionary returned from barzer
         """
         super(Entity, self).__init__(data)
-        self.eclass = data['class']
-        self.subclass = data['subclass']
-        self.id = data['id']
-        self.name = data['name']
-        self.scope = data.get('scope')
-        self.category = data.get('category')
-        self.relevance = data.get('rel', 0)
+        if data:
+            self.eclass = data.get('class')
+            self.subclass = data.get('subclass')
+            self.id = data.get('id')
+            self.name = data.get('name')
+            self.scope = data.get('scope')
+            self.category = data.get('category')
+            self.relevance = data.get('rel', 0)
+        else:
+            self.eclass = self.subclass = self.id = self.name = self.scope = self.category = self.relevance = None # pylint: disable=line-too-long
+
+    def match_template(self, eclass, subclass, entid):
+        return self.match_by_template(self, eclass, subclass, entid)
 
     def __repr__(self):
         return self.__str__()
@@ -85,19 +115,32 @@ class Entity(EntityBase):
             self.category if self.category else self.subclass,
             self.id)
 
+    def to_json(self):
+        ret = {
+            'eclass': self.eclass,
+            'subclass': self.subclass,
+            'id': self.id
+        }
+        for x in ('name', 'scope', 'category', 'relevance'):
+            if getattr(self, x, None) is not None:
+                ret[x] = getattr(self, x)
+        return ret
+
     def ent_id(self):
         return EntityId(self.eclass, self.subclass, self.id)
-
 
 class Range(Bead):
     type_name = "range"
 
-    def __init__(self, data):
+    def __init__(self, data=None):
         super(Range, self).__init__(data)
-        self.rangetype = data.get('rangetype', 'real')
-        self.order = data.get('order')
-        self.lo = data.get('lo')
-        self.hi = data.get('hi')
+        if data:
+            self.rangetype = data.get('rangetype', 'real')
+            self.order = data.get('order')
+            self.lo = data.get('lo')
+            self.hi = data.get('hi')
+        else:
+            self.rangetype = self.order = self.lo = self.hi = None
 
     def __repr__(self):
         return self.__str__()
@@ -125,6 +168,9 @@ class Range(Bead):
         return (isinstance(self.lo, (int, float))
                 or isinstance(self.lo, (int, float)))
 
+    def to_json(self):
+        return {'order': self.order, 'lo': self.lo, 'hi': self.hi}
+
     def get_as_single_number(self, num_type=float):
         pair = self.get_as_type_pair(the_type=num_type)
         if pair[0] is None or pair[1] is None:
@@ -136,10 +182,17 @@ class EVR(EntityBase):
     """ entity value range """
     type_name = "evr"
 
-    def __init__(self, data):
+    def __init__(self, data=None):
         super(EVR, self).__init__(data)
-        self.ent = Entity(data['ent'])
-        self.values = [BeadFactory.make_bead_from_dict(x) for x in data.get('values', [])]
+        if data:
+            self.ent = Entity(data['ent'])
+            self.values = [
+                BeadFactory.make_bead_from_dict(x) for x in data.get('values', [])]
+        else:
+            self.ent = self.values = None
+
+    def match_template(self, eclass, subclass, entid):
+        return self.match_by_template(self.ent, eclass, subclass, entid)
 
     @property
     def eclass(self):
@@ -172,16 +225,22 @@ class EVR(EntityBase):
 class ERC(EntityBase):
     type_name = "erc"
     """ entity range combo """
-    def __init__(self, data):
+    def __init__(self, data=None):
         super(ERC, self).__init__(data)
-        self.ent = Entity(data['ent'])
-        self.range = Range(data.get('range'))
+        if data:
+            self.ent = Entity(data['ent'])
+            self.range = Range(data.get('range'))
+        else:
+            self.ent = self.range = None
 
     def __str__(self):
         return '{}:({}{})'.format(self.type_name, str(self.ent), self.range)
 
     def ent_id(self):
         return self.ent.ent_id()
+
+    def match_template(self, eclass, subclass, entid):
+        return self.match_by_template(self.ent, eclass, subclass, entid)
 
     @property
     def eclass(self):
@@ -195,6 +254,11 @@ class ERC(EntityBase):
     def id(self):
         return self.ent.id
 
+    def to_json(self):
+        return {
+            'ent': self.ent,
+            'range': self.range
+        }
 
 class Time(ValueBead):
     type_name = "time"

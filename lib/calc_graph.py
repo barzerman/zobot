@@ -54,9 +54,14 @@ class CGNodeValue(object):
         setattr(self, 'val_', val)
         return self
 
-    def equal(self, another_cg_value):
-        if self.is_set() and another_cg_value.is_set():
-            return getattr(self, 'val_') == another_cg_value.val_
+    def equal(self, other):
+        if isinstance(other, CGNodeValue):
+            if self.is_set() and other.is_set():
+                return getattr(self, 'val_') == other.val_
+            else:
+                return False
+        elif self.is_set():
+            return getattr(self, 'val_') == other
         else:
             return False
 
@@ -312,6 +317,24 @@ class CGNode(object):
 
         return ret
 
+    @classmethod
+    def make_node_from_data_dict(cls, data, graph=None):
+        """ given a dictionary for node creation produces a CGNode object subtype
+        Returns:
+            tuple(CGNode subtype)
+        """
+        node_type = CGNode.get_class_by_node_type_id(
+            data.get('node_type', 'entity')
+        )
+        if not node_type:
+            return None
+        node_id = data.get('node_id')
+        return node_type(
+            data=data.get('data'),
+            node_id=node_id,
+            graph=graph)
+
+
 
 class CGNodeBasic(CGNode):
     """ plain numeric node """
@@ -357,21 +380,6 @@ class CG(object):
         """ returns bot's greeting (initial) """
         return 'Hi I\'m {}. What can I do for you?'.format(self.bot_name)
 
-    @classmethod
-    def make_node_from_data_dict(cls, data, graph):
-        """ given a dictionary for node creation produces a CGNode object subtype
-        Returns:
-            tuple(CGNode subtype)
-        """
-        node_type = CGNode.get_class_by_node_type_id(
-            data.get('node_type', 'entity')
-        )
-        node_id = data.get('node_id')
-        return node_type(
-            data=data.get('data'),
-            node_id=node_id,
-            graph=graph)
-
     def init_from_data(self, data, node, list_node_type=CGNode):
         if isinstance(data, (list, set, frozenset)):
             return node.set_children(
@@ -381,7 +389,7 @@ class CG(object):
             the_id = data.get('id', data.get('node_id'))
             if 'data' in data:
                 node_data = data['data']
-                n = self.make_node_from_data_dict(data, self)
+                n = CGNode.make_node_from_data_dict(data, self)
                 if the_id is None:
                     the_id = node_data.get('node_id')
             else:

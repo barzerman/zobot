@@ -218,7 +218,7 @@ class NodeValueTypeYesNo(NodeValueType):
 class NodeValueTypeEntity(NodeValueType):
     node_value_type = 'entity'
 
-    def __init__(self, eclass=None, subclass=None, id=None, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, eclass=None, subclass=None, id=None, **kwargs):  # pylint: disable=unused-argument, redefined-builtin
         """
         Entity value type
         """
